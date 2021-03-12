@@ -23,6 +23,7 @@
       </b-col>
 
       <b-col></b-col>
+      <b-col cols="1"><b-button v-b-tooltip.hover title="Delete from fleet (e.g. hauler)" size="sm" variant="light" @click="onDeleteHauler(character.name)" > <b-icon-trash-fill></b-icon-trash-fill></b-button></b-col>
     </b-row>
     <b-table striped hover :fields="itemsFields" :items="Object.values(character.totalItems || character.items)">
 
@@ -33,7 +34,7 @@
 <script>
 export default {
   name: 'CharacterTable',
-  props: ['character', 'onSelectAlt', 'options', 'onOrcaChange', 'hasOrca'],
+  props: ['character', 'onSelectAlt', 'options', 'onOrcaChange', 'hasOrca', 'onDeleteHauler'],
   data () {
     return {
       itemsFields: [

@@ -24,6 +24,7 @@
               :on-select-alt="onSelectAlt"
               :on-orca-change="onOrcaChange"
               :has-orca="hasOrca"
+              :on-delete-hauler="onDeleteHauler"
               :options="options"/>
         </div>
       </b-card>
@@ -346,6 +347,13 @@ export default {
     onOrcaChange (character) {
       this.hasOrca = !this.hasOrca
       this.fleet[character].isOrca = !this.fleet[character].isOrca
+    },
+    /**
+     * Delete hauler from flot isOrca
+     * @param {string} character
+     */
+    onDeleteHauler (character) {
+      this.$delete(this.fleet, character)
     }
   }
 }
