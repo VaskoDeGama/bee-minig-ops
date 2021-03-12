@@ -137,8 +137,8 @@ export default {
           continue
         }
 
-        const itemType = itemTypeRaw.match(/"(\w.*)"/)[1] || itemTypeRaw
-        const itemGroup = itemGroupRaw.match(/"(\w.*)"/)[1] || itemGroupRaw
+        const itemType = itemTypeRaw.match(/"(\w.*)"/) ? itemTypeRaw.match(/"(\w.*)"/)[1] : itemTypeRaw
+        const itemGroup = itemGroupRaw.match(/"(\w.*)"/) ? itemGroupRaw.match(/"(\w.*)"/)[1] : itemGroupRaw
 
         if (character && this.itemsFilter.includes(itemGroup)) {
           const characterRecord = fleet.hasOwnProperty(character)
