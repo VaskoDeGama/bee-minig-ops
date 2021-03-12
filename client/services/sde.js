@@ -1,6 +1,6 @@
 const fetchInvTypes = async () => {
   try {
-    const response = await fetch(`http://sde.zzeve.com/invTypes.json`, {
+    const response = await fetch(`https://sde.zzeve.com/invTypes.json`, {
       method: 'GET'
     })
 
