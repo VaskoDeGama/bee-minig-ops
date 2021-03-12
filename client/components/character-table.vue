@@ -1,7 +1,11 @@
 <template>
-  <div v-if="character.main">
+  <div v-if="character.isMain">
     <b-row align-content="center">
-      <b-col><h4>{{ character.name }}</h4>  <span v-if="character.alts.length > 0">{{ 'Alts: ' + character.alts.join(', ') }}</span> </b-col>
+      <b-col cols="1">
+        <b-button v-if="!hasOrca || character.isOrca" size="sm" :variant="character.isOrca ? 'success' :'light'" @click="onOrcaChange(character.name)" >Orca</b-button>
+      </b-col>
+      <b-col cols="3"><h4>{{ character.name }}</h4>  <span v-if="character.alts.length > 0">{{ 'Alts: ' + character.alts.join(', ') }}</span> </b-col>
+
       <b-col>
         <b-form-select
             v-if="character.alts.length === 0"
@@ -17,6 +21,8 @@
       </b-form-select>
 
       </b-col>
+
+      <b-col></b-col>
     </b-row>
     <b-table striped hover :fields="itemsFields" :items="Object.values(character.totalItems || character.items)">
 
@@ -27,7 +33,7 @@
 <script>
 export default {
   name: 'CharacterTable',
-  props: ['character', 'onSelectAlt', 'options'],
+  props: ['character', 'onSelectAlt', 'options', 'onOrcaChange', 'hasOrca'],
   data () {
     return {
       itemsFields: [
@@ -40,7 +46,7 @@ export default {
           key: 'prices',
           label: 'Prices',
           sortable: true,
-          formatter: (value, key, item) => value.fastSelPrice
+          formatter: (value) => value.fastSelPrice
         },
         { key: 'totalPrice', label: 'Total price', sortable: true }
       ]

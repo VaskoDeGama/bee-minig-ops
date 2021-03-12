@@ -19,7 +19,12 @@
     <b-col>
       <b-card header="Parsed log">
         <div v-for="(character, characterName) in fleet" :key="characterName">
-          <CharacterTable :character="character" :on-select-alt="onSelectAlt" :options="options"/>
+          <CharacterTable
+              :character="character"
+              :on-select-alt="onSelectAlt"
+              :on-orca-change="onOrcaChange"
+              :has-orca="hasOrca"
+              :options="options"/>
         </div>
       </b-card>
     </b-col>
@@ -79,6 +84,7 @@ export default {
       prices: {},
       invTypes: [],
       loading: false,
+      hasOrca: false,
 
       itemsFilter: [
         'Plagioclase',
@@ -101,7 +107,7 @@ export default {
   computed: {
     options: function () {
       return [
-        ...Object.values(this.fleet).filter(({ main }) => main).map(({ name }) => {
+        ...Object.values(this.fleet).filter(({ isMain }) => isMain).map(({ name }) => {
           return { value: name, text: name }
         })
       ]
@@ -143,7 +149,7 @@ export default {
         if (character && this.itemsFilter.includes(itemGroup)) {
           const characterRecord = fleet.hasOwnProperty(character)
             ? fleet[character]
-            : { items: {}, name: character, alts: [], main: true }
+            : { items: {}, isOrca: false, name: character, alts: [], isMain: true }
 
           if (characterRecord.items.hasOwnProperty(itemType)) {
             const { quantity: prevQuantity, volume, prices } = characterRecord.items[itemType]
@@ -192,7 +198,7 @@ export default {
       const mainRecord = this.fleet[mainCharacter]
       const altRecord = this.fleet[altCharacter]
 
-      altRecord.main = false
+      altRecord.isMain = false
 
       const totalItems = { ...mainRecord.items }
       const altItems = altRecord.items
@@ -332,6 +338,14 @@ export default {
         // TODO: show message alert
         console.error(message)
       }
+    },
+    /**
+     * Ser isOrca
+     * @param {string} character
+     */
+    onOrcaChange (character) {
+      this.hasOrca = !this.hasOrca
+      this.fleet[character].isOrca = !this.fleet[character].isOrca
     }
   }
 }

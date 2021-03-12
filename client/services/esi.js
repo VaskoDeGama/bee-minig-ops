@@ -1,6 +1,6 @@
 const fetchOrdersByTypeId = async (typeId) => {
   try {
-    const response = await fetch(`https://esi.evetech.net/latest/markets/10000002/orders/?type_id=${typeId}`, {
+    const response = await fetch(`http://esi.evetech.net/latest/markets/10000002/orders/?type_id=${typeId}`, {
       method: 'GET'
     })
 

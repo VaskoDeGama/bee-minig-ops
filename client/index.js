@@ -10,9 +10,6 @@ Vue.use(VueRouter)
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
 
-Vue.config.devtools = false
-Vue.config.productionTip = false
-
 new Vue({ // eslint-disable-line
   el: '#app',
   components: { Main },
