@@ -1,6 +1,6 @@
 <template>
-  <b-row class="m-5">
-    <b-col md="4">
+  <b-row class="m-5 d-flex align-items-stretch justify-content-center">
+    <b-col cols="3" class="mb-5">
       <b-form @submit="parseLog">
         <b-form-group>
           <b-form-textarea
@@ -17,7 +17,7 @@
 
     </b-col>
     <b-col>
-      <b-card header="Parsed log">
+      <b-card header="Parsed log" class="">
         <div v-for="(character, characterName) in fleet" :key="characterName">
           <CharacterTable
               :character="character"
