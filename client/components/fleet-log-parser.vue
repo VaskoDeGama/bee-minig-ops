@@ -1,5 +1,5 @@
 <template>
-  <b-row class="m-5" >
+  <b-row class="m-5">
     <b-col md="4">
       <b-form @submit="parseLog">
         <b-form-group>
@@ -19,7 +19,7 @@
     <b-col>
       <b-card header="Parsed log">
         <div v-for="(character, characterName) in fleet" :key="characterName">
-          <CharacterTable :character="character" :on-select-alt="onSelectAlt" :options="options" />
+          <CharacterTable :character="character" :on-select-alt="onSelectAlt" :options="options"/>
         </div>
       </b-card>
     </b-col>
@@ -40,67 +40,62 @@ export default {
   data () {
     return {
       logText: 'Time\tCharacter\tItem Type\tQuantity\tItem Group\n' +
-          '2021.03.08 13:47\tVITO PR\tPyroxeres\t963\tPyroxeres\n' +
-          '2021.03.08 13:45\tVDG Mabuta\tAzure Plagioclase\t6098\tPlagioclase\n' +
-          '2021.03.08 13:31\tDiana Udan\tPlagioclase\t248\tPlagioclase\n' +
-          '2021.03.08 13:30\tVITO PR\tMetal Scraps\t1\tCommodities\n' +
-          '2021.03.08 13:30\tVITO PR\tAntimatter Charge S\t100\tHybrid Charge\n' +
-          '2021.03.08 13:29\tVDG Mabuta\tPlagioclase\t328\tPlagioclase\n' +
-          '2021.03.08 13:29\tVITO PR\tCharred Micro Circuit\t4\tSalvaged Materials\n' +
-          '2021.03.08 13:29\tVITO PR\tMalfunctioning Shield Emitter\t1\tSalvaged Materials\n' +
-          '2021.03.08 13:29\tVITO PR\tConductive Polymer\t1\tSalvaged Materials\n' +
-          '2021.03.08 13:23\tVITO PR\tDamaged Artificial Neural Network\t1\tSalvaged Materials\n' +
-          '2021.03.08 13:24\tVDG Mabuta\tPyroxeres\t6963\tPyroxeres\n' +
-          '2021.03.08 13:22\tDiana Udan\tPyroxeres\t2315\tPyroxeres\n' +
-          '2021.03.08 13:32\tNIKOJIA SPIRTOVKIN\tCondensed Scordite\t53119\tScordite\n' +
-          '2021.03.08 13:48\tNIKOJIA SPIRTOVKIN\tViscous Pyroxeres\t15422\tPyroxeres\n' +
-          '2021.03.08 13:15\tDiana Udan\tMetal Scraps\t1\tCommodities\n' +
-          '2021.03.08 13:18\tVDG Infinity\tAzure Plagioclase\t25875\tPlagioclase\n' +
-          '2021.03.08 13:30\tVDG Infinity\tMassive Scordite\t32580\tScordite\n' +
-          '2021.03.08 13:22\tVITO PR\tRich Plagioclase\t11279\tPlagioclase\n' +
-          '2021.03.08 13:44\tVITO PR\tAzure Plagioclase\t17291\tPlagioclase\n' +
-          '2021.03.08 13:08\tVITO PR\tPlagioclase\t6533\tPlagioclase\n' +
-          '2021.03.08 13:40\tNIKOJIA SPIRTOVKIN\tScordite\t31977\tScordite\n' +
-          '2021.03.08 13:31\tNIKOJIA SPIRTOVKIN\tMassive Scordite\t20710\tScordite\n' +
-          '2021.03.08 13:47\tDiana Udan\tVeldspar\t121667\tVeldspar\n' +
-          '2021.03.08 13:49\tVDG Mabuta\tSolid Pyroxeres\t15453\tPyroxeres\n' +
-          '2021.03.08 13:48\tVDG Mabuta\tViscous Pyroxeres\t65858\tPyroxeres\n' +
-          '2021.03.08 13:48\tNIKOJIA SPIRTOVKIN\tSolid Pyroxeres\t18971\tPyroxeres\n' +
-          '2021.03.08 13:38\tNIKOJIA SPIRTOVKIN\tConcentrated Veldspar\t71417\tVeldspar\n' +
-          '2021.03.08 13:48\tNIKOJIA SPIRTOVKIN\tPyroxeres\t8693\tPyroxeres\n' +
-          '2021.03.08 13:21\tDiana Udan\tViscous Pyroxeres\t28788\tPyroxeres\n' +
-          '2021.03.08 13:49\tVITO PR\tViscous Pyroxeres\t15791\tPyroxeres\n' +
-          '2021.03.08 13:42\tVDG Mabuta\tScordite\t27489\tScordite\n' +
-          '2021.03.08 13:45\tDiana Udan\tDense Veldspar\t268930\tVeldspar\n' +
-          '2021.03.08 13:41\tVDG Mabuta\tMassive Scordite\t85406\tScordite\n' +
-          '2021.03.08 12:38\tVDG Infinity\tSolid Pyroxeres\t4585\tPyroxeres\n' +
-          '2021.03.08 13:48\tDiana Udan\tConcentrated Veldspar\t116727\tVeldspar\n' +
-          '2021.03.08 12:49\tVITO PR\tSolid Pyroxeres\t3648\tPyroxeres\n' +
-          '2021.03.08 13:25\tDiana Udan\tCondensed Scordite\t30204\tScordite\n' +
-          '2021.03.08 13:41\tVDG Mabuta\tCondensed Scordite\t32101\tScordite\n' +
-          '2021.03.08 13:46\tNIKOJIA SPIRTOVKIN\tPlagioclase\t31628\tPlagioclase\n' +
-          '2021.03.08 12:47\tDiana Udan\tScordite\t53276\tScordite\n' +
-          '2021.03.08 12:32\tVDG Mabuta\tConcentrated Veldspar\t79834\tVeldspar\n' +
-          '2021.03.08 13:46\tNIKOJIA SPIRTOVKIN\tDense Veldspar\t305045\tVeldspar\n' +
-          '2021.03.08 12:26\tVDG Infinity\tPyroxeres\t3970\tPyroxeres\n' +
-          '2021.03.08 13:48\tVDG Mabuta\tVeldspar\t50724\tVeldspar\n' +
-          '2021.03.08 13:38\tDiana Udan\tMassive Scordite\t110421\tScordite\n' +
-          '2021.03.08 13:32\tVDG Infinity\tCondensed Scordite\t20460\tScordite\n' +
-          '2021.03.08 13:23\tVDG Infinity\tViscous Pyroxeres\t29236\tPyroxeres\n' +
-          '2021.03.08 13:15\tVDG Infinity\tPlagioclase\t23383\tPlagioclase\n' +
-          '2021.03.08 13:20\tVDG Infinity\tConcentrated Veldspar\t63876\tVeldspar\n' +
-          '2021.03.08 12:20\tDiana Udan\tRich Plagioclase\t49804\tPlagioclase\n' +
-          '2021.03.08 13:31\tVDG Infinity\tDense Veldspar\t217345\tVeldspar\n' +
-          '2021.03.08 13:48\tVDG Mabuta\tDense Veldspar\t300472\tVeldspar\n' +
-          '2021.03.08 13:13\tNIKOJIA SPIRTOVKIN\tAzure Plagioclase\t47712\tPlagioclase\n' +
-          '2021.03.08 12:20\tNIKOJIA SPIRTOVKIN\tRich Plagioclase\t86101\tPlagioclase\n',
+          '2021.03.11 17:25\tKomon Okanata\t<localized hint="Arkonor">Arkonor*</localized>\t2814\t<localized hint="Arkonor">Arkonor*</localized>\t\n' +
+          '2021.03.11 17:26\tDiana Udan\t<localized hint="Arkonor">Arkonor*</localized>\t3167\t<localized hint="Arkonor">Arkonor*</localized>\t\n' +
+          '2021.03.11 17:24\tMina Cepesh\t<localized hint="Arkonor">Arkonor*</localized>\t12827\t<localized hint="Arkonor">Arkonor*</localized>\t\n' +
+          '2021.03.11 17:26\tznaxar Lemmont\t<localized hint="Arkonor">Arkonor*</localized>\t1200\t<localized hint="Arkonor">Arkonor*</localized>\t\n' +
+          '2021.03.11 17:26\tNIKOJIA SPIRTOVKIN\t<localized hint="Arkonor">Arkonor*</localized>\t3447\t<localized hint="Arkonor">Arkonor*</localized>\t\n' +
+          '2021.03.11 17:26\tAloxalola\t<localized hint="Arkonor">Arkonor*</localized>\t578\t<localized hint="Arkonor">Arkonor*</localized>\t\n' +
+          '2021.03.11 17:26\tHAnter33\t<localized hint="Arkonor">Arkonor*</localized>\t3026\t<localized hint="Arkonor">Arkonor*</localized>\t\n' +
+          '2021.03.11 17:26\tAlex Osfar\t<localized hint="Arkonor">Arkonor*</localized>\t744\t<localized hint="Arkonor">Arkonor*</localized>\t\n' +
+          '2021.03.11 16:38\tDiana Udan\t<localized hint="Gneiss">Gneiss*</localized>\t2981\t<localized hint="Gneiss">Gneiss*</localized>\t\n' +
+          '2021.03.11 16:36\tKomon Okanata\t<localized hint="Gneiss">Gneiss*</localized>\t2580\t<localized hint="Gneiss">Gneiss*</localized>\t\n' +
+          '2021.03.11 16:38\tAlex Osfar\t<localized hint="Gneiss">Gneiss*</localized>\t625\t<localized hint="Gneiss">Gneiss*</localized>\t\n' +
+          '2021.03.11 16:36\tAloxalola\t<localized hint="Gneiss">Gneiss*</localized>\t456\t<localized hint="Gneiss">Gneiss*</localized>\t\n' +
+          '2021.03.11 16:01\tVARATAY\t<localized hint="Neural Network Analyzer">Neural Network Analyzer*</localized>\t10\t<localized hint="Sleeper Components">Компоненты Sleeper*</localized>\t\n' +
+          '2021.03.11 16:36\tznaxar Lemmont\t<localized hint="Gneiss">Gneiss*</localized>\t4642\t<localized hint="Gneiss">Gneiss*</localized>\t\n' +
+          '2021.03.11 16:26\tAlex Osfar\t<localized hint="Kernite">Kernite*</localized>\t11201\t<localized hint="Kernite">Kernite*</localized>\t\n' +
+          '2021.03.11 16:26\tDiana Udan\t<localized hint="Kernite">Kernite*</localized>\t53000\t<localized hint="Kernite">Kernite*</localized>\t\n' +
+          '2021.03.11 16:36\tNIKOJIA SPIRTOVKIN\t<localized hint="Gneiss">Gneiss*</localized>\t16172\t<localized hint="Gneiss">Gneiss*</localized>\t\n' +
+          '2021.03.11 16:26\tKomon Okanata\t<localized hint="Kernite">Kernite*</localized>\t45582\t<localized hint="Kernite">Kernite*</localized>\t\n' +
+          '2021.03.11 16:26\tAloxalola\t<localized hint="Kernite">Kernite*</localized>\t8640\t<localized hint="Kernite">Kernite*</localized>\t\n' +
+          '2021.03.11 15:40\tKomon Okanata\t<localized hint="Bistot">Bistot*</localized>\t2391\t<localized hint="Bistot">Bistot*</localized>\t\n' +
+          '2021.03.11 15:40\tNIKOJIA SPIRTOVKIN\t<localized hint="Bistot">Bistot*</localized>\t3002\t<localized hint="Bistot">Bistot*</localized>\t\n' +
+          '2021.03.11 16:35\tMina Cepesh\t<localized hint="Kernite">Kernite*</localized>\t200000\t<localized hint="Kernite">Kernite*</localized>\t\n' +
+          '2021.03.11 16:48\tMina Cepesh\t<localized hint="Gneiss">Gneiss*</localized>\t29924\t<localized hint="Gneiss">Gneiss*</localized>\t\n' +
+          '2021.03.11 16:36\tHAnter33\t<localized hint="Gneiss">Gneiss*</localized>\t2544\t<localized hint="Gneiss">Gneiss*</localized>\t\n' +
+          '2021.03.11 16:26\tHAnter33\t<localized hint="Kernite">Kernite*</localized>\t77289\t<localized hint="Kernite">Kernite*</localized>\t\n' +
+          '2021.03.11 14:03\tznaxar Lemmont\t<localized hint="Neural Network Analyzer">Neural Network Analyzer*</localized>\t4\t<localized hint="Sleeper Components">Компоненты Sleeper*</localized>\t\n' +
+          '2021.03.11 14:02\tHAnter33\t<localized hint="Neural Network Analyzer">Neural Network Analyzer*</localized>\t6\t<localized hint="Sleeper Components">Компоненты Sleeper*</localized>\t\n' +
+          '2021.03.11 16:29\tMina Cepesh\t<localized hint="Bistot">Bistot*</localized>\t23845\t<localized hint="Bistot">Bistot*</localized>\t\n' +
+          '2021.03.11 15:40\tznaxar Lemmont\t<localized hint="Bistot">Bistot*</localized>\t4067\t<localized hint="Bistot">Bistot*</localized>\t\n' +
+          '2021.03.11 15:40\tDiana Udan\t<localized hint="Bistot">Bistot*</localized>\t9071\t<localized hint="Bistot">Bistot*</localized>\t\n' +
+          '2021.03.11 14:53\tHAnter33\t<localized hint="Bistot">Bistot*</localized>\t3452\t<localized hint="Bistot">Bistot*</localized>\t\n' +
+          '2021.03.11 15:40\tAlex Osfar\t<localized hint="Bistot">Bistot*</localized>\t1376\t<localized hint="Bistot">Bistot*</localized>\t\n' +
+          '2021.03.11 15:40\tAloxalola\t<localized hint="Bistot">Bistot*</localized>\t1380\t<localized hint="Bistot">Bistot*</localized>\t\n' +
+          '\n',
       fleet: {},
       baseInfo: {},
       prices: {},
       invTypes: [],
       loading: false,
 
-      itemsFilter: ['Plagioclase', 'Pyroxeres', 'Scordite', 'Veldspar', 'Arkonor', 'Bistot', 'Crokite', 'Dark Ochre', 'Gneiss', 'Hedbergite', 'Hemorphite', 'Jaspet', 'Kernite', 'Omber', 'Spodumain']
+      itemsFilter: [
+        'Plagioclase',
+        'Pyroxeres',
+        'Scordite',
+        'Veldspar',
+        'Arkonor',
+        'Bistot',
+        'Crokite',
+        'Dark Ochre',
+        'Gneiss',
+        'Hedbergite',
+        'Hemorphite',
+        'Jaspet',
+        'Kernite',
+        'Omber',
+        'Spodumain']
     }
   },
   computed: {
@@ -131,11 +126,19 @@ export default {
       const rows = text.split('\n')
 
       rows.shift() // remove headers row
+      rows.pop() // remove empty row
 
-      const fleet = { }
+      const fleet = {}
 
       for (const row of rows) {
-        const [ , character, itemType, quantityValue, itemGroup ] = row.split('\t')
+        const [, character, itemTypeRaw, quantityValue, itemGroupRaw] = row.split('\t')
+
+        if (!character || !itemTypeRaw || !quantityValue || !itemGroupRaw) {
+          continue
+        }
+
+        const itemType = itemTypeRaw.match(/"(\w.*)"/)[1]
+        const itemGroup = itemGroupRaw.match(/"(\w.*)"/)[1]
 
         if (character && this.itemsFilter.includes(itemGroup)) {
           const characterRecord = fleet.hasOwnProperty(character)
