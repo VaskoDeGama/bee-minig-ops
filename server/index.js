@@ -3,7 +3,7 @@ const morgan = require('morgan')
 const path = require('path')
 const app = express()
 
-app.set('port', 3000)
+app.set('port', process.env.PORT || 3000)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
