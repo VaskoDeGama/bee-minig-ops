@@ -3,9 +3,7 @@
     <b-col class="d-flex flex-column justify-content-center align-items-center">
       <h2>Corporation <a class="text-warning" href="https://forums.eveonline.com/t/stone-miners/298628">Stone miners</a> greets you!</h2>
       <p>There’ll be more information soon</p>
-      <div>
-        <b-img src="https://cdn.bulbagarden.net/upload/thumb/7/76/015Beedrill-Mega.png/600px-015Beedrill-Mega.png" fluid></b-img>
-      </div>
+        <b-img src="https://64.media.tumblr.com/571103093ee986dee318e3d4724a6163/tumblr_nrkf9hItg51tvfheeo1_1280.jpg" class="w-25" fluid></b-img>
     </b-col>
 
   </b-row>

@@ -1,6 +1,6 @@
 <template>
     <b-navbar type="dark" variant="dark" class="w-100" >
-      <b-navbar-brand to="/">Bee mining ops</b-navbar-brand>
+      <b-navbar-brand to="/">Stone miners tools</b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 

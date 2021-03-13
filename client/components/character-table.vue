@@ -2,8 +2,8 @@
   <div v-if="character.isMain">
     <b-row class="d-flex flex-row justify-content-between align-items-center">
 
-      <b-col class="d-inline-flex flex-row justify-content-start align-items-center">
-        <h5>
+      <b-col class="d-flex  justify-content-start align-items-baseline">
+        <h5 >
           <b-button
               v-if="!hasOrca || character.isOrca"
               size="sm"
@@ -14,17 +14,30 @@
         </h5>
         <span v-if="character.alts.length > 0" class="ml-3">{{ 'Alts: ' + character.alts.join(', ') }}</span></b-col>
 
-      <b-col cols="2" class="d-flex justify-content-end align-items-center">
-        <b-form-select
+      <b-col class="d-flex flex-row justify-content-end align-items-baseline">
+        <b-form-group
             v-if="(character.alts.length === 0) && !character.isOrca"
-            v-b-tooltip.hover
-            :options="options.filter(({value}) => value !== character.name)"
-            :value="null"
-            size="sm"
-            title="Select an main character if need"
-            :data-character="character.name"
-            @change.native="onSelectAlt">
-        </b-form-select>
+            class="m-0"
+            label-cols="auto"
+            label-align="right"
+            label-size="sm"
+            label="Main character(if need):"
+            label-for="selectMain"
+            valid-feedback="Thank you!">
+          <b-form-select
+              id="selectMain"
+              v-b-tooltip.hover
+              :options="options.filter(({value}) => value !== character.name)"
+              :value="null"
+              size="sm"
+              title="Select an main character if need"
+              :data-character="character.name"
+              @change.native="onSelectAlt">
+            <template #first>
+              <b-form-select-option :value="null" disabled>--it's main--</b-form-select-option>
+            </template>
+          </b-form-select>
+        </b-form-group>
 
       </b-col>
 
@@ -40,9 +53,12 @@
         </b-button>
       </b-col>
     </b-row>
-    <b-table striped hover :fields="itemsFields" :items="Object.values(character.totalItems || character.items)">
+    <b-row>
+      <b-table striped hover :fields="itemsFields" :items="Object.values(character.totalItems || character.items)">
 
-    </b-table>
+      </b-table>
+    </b-row>
+
   </div>
 </template>
 
@@ -54,17 +70,23 @@ export default {
     return {
       itemsFields: [
         { key: 'itemType', sortable: true },
-        { key: 'itemGroup', sortable: true },
         { key: 'quantity', sortable: true },
-        { key: 'volume', label: 'Volume per item', sortable: true },
-        { key: 'totalVolume', label: 'Total volume', sortable: true },
-        {
-          key: 'prices',
-          label: 'Prices',
+        { key: 'totalVolume',
+          label: 'Total volume',
           sortable: true,
-          formatter: (value) => value.fastSelPrice
-        },
-        { key: 'totalPrice', label: 'Total price', sortable: true }
+          formatter: (value) => {
+            const str = value.toString().replace(/(?!^)(?=(?:\d{3})+(?:\.|$))/gm, ',')
+
+            return `${str} m3`
+          } },
+        { key: 'totalPrice',
+          label: 'Total price',
+          sortable: true,
+          formatter: (value) => {
+            const str = value.toString().replace(/(?!^)(?=(?:\d{3})+(?:\.|$))/gm, ',')
+
+            return `${str} ISK`
+          } }
       ]
     }
   }
