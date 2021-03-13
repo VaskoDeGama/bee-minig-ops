@@ -32,7 +32,11 @@ export default {
   },
   data () {
     return {
-      fleet: {},
+      fleet: {
+        items: {},
+        totalPrice: {},
+        totalVolume: {}
+      },
       invTypes: [],
       loading: false,
       hasOrca: false,
@@ -61,7 +65,6 @@ export default {
     await this.getInvTypes()
   },
   methods: {
-
     /**
      * Fetch baseInfo table
      * @returns {Promise<void>}
@@ -83,7 +86,7 @@ export default {
      * Move alt into main character
      * @param {Event} event
      */
-    onSelectAlt (event) {
+    async onSelectAlt (event) {
       event.preventDefault()
 
       const mainCharacter = event.target.value
@@ -102,35 +105,24 @@ export default {
       const totalItems = { ...mainRecord.items }
       const altItems = altRecord.items
 
-      for (const { itemType, quantity: addedQuantity, itemGroup, ...baseInfo } of Object.values(altItems)) {
+      for (const { itemType, quantity: quantityValue, itemGroup, baseInfo, prices } of Object.values(altItems)) {
         if (totalItems.hasOwnProperty(itemType)) {
-          const { quantity: prevQuantity } = altItems[itemType]
+          const { record, itemTotalVolume, itemTotalPrice } = this.updateItemRecord(altItems[itemType], quantityValue)
 
-          const quantity = prevQuantity + addedQuantity
-
-          totalItems[itemType] = {
-            itemType,
-            quantity,
-            itemGroup,
-            ...baseInfo,
-            totalVolume: Math.round(quantity * baseInfo.volume),
-            totalPrice: this.roundPrice(quantity * baseInfo.prices.fastSelPrice)
-          }
+          mainRecord.items[itemType] = record
+          mainRecord.totalVolume += itemTotalVolume
+          mainRecord.totalPrice += itemTotalPrice
         } else {
-          const quantity = addedQuantity
+          const { record, itemTotalVolume, itemTotalPrice } = await this.createItemRecord(itemType, itemGroup, quantityValue, false, baseInfo, prices)
 
-          totalItems[itemType] = {
-            itemType,
-            quantity,
-            itemGroup,
-            ...baseInfo,
-            totalVolume: Math.round(quantity * baseInfo.volume),
-            totalPrice: this.roundPrice(quantity * baseInfo.prices.fastSelPrice)
-          }
+          mainRecord.items[itemType] = record
+          mainRecord.totalVolume += itemTotalVolume
+          mainRecord.totalPrice += itemTotalPrice
         }
       }
 
       mainRecord.alts.push(altCharacter)
+      mainRecord.hasAlts = true
       mainRecord.totalItems = totalItems
     },
     /**
@@ -175,43 +167,22 @@ export default {
         const itemGroup = itemGroupRaw.match(/"(\w.*)"/) ? itemGroupRaw.match(/"(\w.*)"/)[1] : itemGroupRaw
 
         if (character && this.itemsFilter.includes(itemGroup)) {
-          const characterRecord = fleet.hasOwnProperty(character)
+          const characterRecord = Reflect.has(fleet, character)
             ? fleet[character]
-            : { items: {}, isOrca: false, name: character, alts: [], isMain: true }
+            : { items: {}, isOrca: false, name: character, alts: [], isMain: true, hasAlts: false, totalVolume: 0, totalPrice: 0 }
 
-          if (characterRecord.items.hasOwnProperty(itemType)) {
-            const { quantity: prevQuantity, volume, prices } = characterRecord.items[itemType]
+          const record = await this.createItemRecord(itemType, itemGroup, quantityValue)
 
-            const quantity = prevQuantity + parseInt(quantityValue)
-
-            characterRecord.items[itemType] = {
-              itemType,
-              quantity,
-              itemGroup,
-              totalVolume: Math.round(prevQuantity + parseInt(quantity) * volume),
-              totalPrice: this.roundPrice(quantity * prices.fastSelPrice)
-            }
-          } else {
-            const baseInfo = await this.getBaseInfo(itemType)
-            const prices = await this.getPrice(baseInfo.typeID)
-            const quantity = parseInt(quantityValue)
-
-            characterRecord.items[itemType] = {
-              itemType,
-              quantity,
-              itemGroup,
-              ...baseInfo,
-              prices,
-              totalVolume: Math.round(parseInt(quantity) * baseInfo.volume),
-              totalPrice: this.roundPrice(quantity * prices.fastSelPrice)
-            }
-          }
+          characterRecord.items[itemType] = record
+          characterRecord.totalPrice += record.totalPrice
+          characterRecord.totalVolume += record.totalVolume
 
           fleet[character] = characterRecord
         }
       }
 
       this.fleet = fleet
+      console.log(fleet)
     },
     /**
      * @param {number} price
@@ -258,8 +229,6 @@ export default {
             // TODO: send alert with message
             console.error(message)
             return {
-              avgBuyPrice: 0,
-              avgSelPrice: 0,
               fastBuyPrice: 0,
               fastSelPrice: 0
             }
@@ -277,17 +246,13 @@ export default {
               }
             }
 
-            const maxBuyOrders = buy.sort((a, b) => b.price - a.price).slice(0, 3)
-            const minSellOrders = sell.sort((a, b) => a.price - b.price).slice(0, 3)
+            const maxBuyOrders = buy.sort((a, b) => b.price - a.price)
+            const minSellOrders = sell.sort((a, b) => a.price - b.price)
 
-            const avgBuyPrice = this.getAvgPrice(maxBuyOrders)
-            const avgSelPrice = this.getAvgPrice(minSellOrders)
             const fastBuyPrice = this.getAvgPrice(maxBuyOrders.slice(0, 1))
             const fastSelPrice = this.getAvgPrice(minSellOrders.slice(0, 1))
 
             const prices = {
-              avgBuyPrice,
-              avgSelPrice,
               fastBuyPrice,
               fastSelPrice
             }
@@ -299,6 +264,56 @@ export default {
         }
       } catch (e) {
         console.error('getPrice failed', e)
+      }
+    },
+    /**
+     *
+     * @param {object} prevRecord
+     * @param {string} quantityValue
+     * @returns {object}
+     */
+    updateItemRecord (prevRecord, quantityValue) {
+      const { quantity: prevQuantity, baseInfo, prices, itemType, itemGroup } = prevRecord
+
+      const quantity = prevQuantity + parseInt(quantityValue)
+
+      const record = {
+        quantity,
+        baseInfo,
+        prices,
+        itemType,
+        itemGroup,
+        totalVolume: Math.round(prevQuantity + parseInt(quantity) * baseInfo.volume),
+        totalPrice: this.roundPrice(quantity * prices.fastSelPrice)
+      }
+
+      console.log({ prevRecord, record })
+      return record
+    },
+    /**
+     *
+     * @param {string} itemType
+     * @param {string} itemGroup
+     * @param {string} quantityValue
+     * @param {boolean} [withFetch=true]
+     * @param {object} [altBaseInfo={}]
+     * @param {object} [altPrices={}]
+     * @returns {Promise<object>}
+     */
+    async createItemRecord (itemType, itemGroup, quantityValue, withFetch = true, altBaseInfo = {}, altPrices = {}) {
+      const baseInfo = withFetch ? await this.getBaseInfo(itemType) : altBaseInfo
+      const prices = withFetch ? await this.getPrice(baseInfo.typeID) : altPrices
+
+      const quantity = parseInt(quantityValue)
+
+      return {
+        itemType,
+        quantity,
+        itemGroup,
+        baseInfo,
+        prices,
+        totalVolume: Math.round(quantity * baseInfo.volume),
+        totalPrice: this.roundPrice(quantity * prices.fastBuyPrice)
       }
     }
   }

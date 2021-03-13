@@ -1,5 +1,5 @@
 <template>
-  <b-card header="Fleet details" class="mb-3">
+<div>
     <CharacterTable v-for="(character, characterName) in fleet" :key="characterName"
     :on-select-alt="onSelectAlt"
     :on-orca-change="onOrcaChange"
@@ -7,7 +7,7 @@
     :has-orca="hasOrca"
     :character="character"
     :options="options"/>
-  </b-card>
+</div>
 </template>
 
 <script>
