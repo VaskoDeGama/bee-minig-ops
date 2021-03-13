@@ -1,14 +1,14 @@
 <template>
-  <b-row class="m-5 d-flex align-items-stretch justify-content-center">
-    <b-col cols="3" class="mb-5">
+  <b-row class="min-vw-100 mt-3 mb-3 d-flex flex-md-column flex-lg-row  ">
+    <b-col md="12" lg="3" class="mb-5">
       <b-form @submit="parseLog">
         <b-form-group>
           <b-form-textarea
               id="textarea"
               v-model="logText"
               placeholder="Enter fleet log"
-              rows="20"
-              max-rows="30"/>
+              rows="10"
+              max-rows="20"/>
         </b-form-group>
 
         <b-button type="submit" variant="primary">Parse</b-button>

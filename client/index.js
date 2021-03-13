@@ -1,27 +1,35 @@
 'use strict'
 
 import Vue from 'vue'
-import Main from './layouts/index.vue'
 import VueRouter from 'vue-router'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+import MainLayout from './layouts/main-layout.vue'
+import { FleetLogParser, Main } from './components'
 import './assets/style.scss'
 
 Vue.use(VueRouter)
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
 
+const routes = [
+  { path: '/', component: Main },
+  { path: '/parser', component: FleetLogParser }
+]
+
+const router = new VueRouter({
+  mode: 'history',
+  routes
+})
+
 new Vue({ // eslint-disable-line
+  router,
   el: '#app',
-  components: { Main },
+  components: { MainLayout },
   data () {
     return {
       bus: new Vue()
     }
   },
 
-  created () {
-
-  },
-
-  template: '<Main :bus="bus"/>'
+  template: '<MainLayout :bus="bus"/>'
 })

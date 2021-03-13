@@ -12,9 +12,10 @@ module.exports = {
     disableHostCheck: true,
     host: 'localhost',
     port: 9011,
-    proxy: {
-      '/': 'http://localhost:3000/'
-    }
+    historyApiFallback: true
+    // proxy: {
+    //   '/': 'http://localhost:3000/'
+    // }
   },
   mode: 'development'
 }
