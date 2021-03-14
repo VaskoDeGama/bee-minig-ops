@@ -4,7 +4,6 @@
       <ParseForm :parse-log="parseLog"/>
     </b-col>
     <b-col class="d-flex flex-column">
-
       <FleetTotal :fleet-total="fleetTotal" :fleet-parsed="fleetParsed"/>
       <FleetDetails
           :fleet="fleet"
@@ -113,6 +112,31 @@ export default {
   },
   methods: {
     /**
+     * @param {string[]} types
+     * @param {string} market
+     * @returns {object}
+     */
+    async getPricePrasial (types, market) {
+      const formattedTypes = types.map(name => {
+        return { name }
+      })
+      const { success, data, message } = await this.$api.esi.fetchPricesFromEvePrasial(formattedTypes, market)
+
+      if (success) {
+        const { items } = data
+        const prices = {}
+
+        for (const item of items) {
+          prices[item.name] = item.prices
+        }
+
+        return prices
+      } else {
+        console.error(message)
+        return {}
+      }
+    },
+    /**
      * Fetch baseInfo table
      * @returns {Promise<void>}
      */
@@ -182,25 +206,29 @@ export default {
     /**
      * Parse fleet log to object
      * @param {string} log
+     * @param market
      */
-    async parseLog (log) {
+    async parseLog (log, market) {
       this.prices = {}
       this.fleet = {}
       this.baseInfo = {}
       this.orcaReward = {}
       this.fleetParsed = false
 
-      const rows = log.split('\n')
+      const rawRows = log.split('\n')
 
-      rows.shift() // remove headers row
-      rows.pop() // remove empty row
+      rawRows.shift() // remove headers row
 
       const fleet = { }
-      const [rawDate] = rows[0].split('\t')
+
+      const [rawDate] = rawRows[0].split('\t')
 
       this.fleetDate = this.parseDate(rawDate)
 
-      for (const row of rows) {
+      const rows = []
+      const itemNames = []
+
+      for (const row of rawRows) {
         const [, character, itemTypeRaw, quantityValue, itemGroupRaw] = row.split('\t')
 
         if (!character || !itemTypeRaw || !quantityValue || !itemGroupRaw) {
@@ -210,22 +238,35 @@ export default {
         const itemType = itemTypeRaw.match(/"(\w.*)"/) ? itemTypeRaw.match(/"(\w.*)"/)[1] : itemTypeRaw
         const itemGroup = itemGroupRaw.match(/"(\w.*)"/) ? itemGroupRaw.match(/"(\w.*)"/)[1] : itemGroupRaw
 
-        if (character && this.itemsFilter.includes(itemGroup)) {
-          const characterRecord = Reflect.has(fleet, character)
-            ? fleet[character]
-            : { items: {}, isOrca: false, name: character, alts: [], isMain: true, hasAlts: false, totalVolume: 0, totalPrice: 0 }
+        if (this.itemsFilter.includes(itemGroup)) {
+          if (!itemNames.includes(itemType)) {
+            itemNames.push(itemType)
+          }
 
-          const baseInfo = await this.getBaseInfo(itemType)
-          const prices = await this.getPrice(baseInfo.typeID)
-
-          const record = await this.createItemRecord(itemType, itemGroup, quantityValue, baseInfo, prices)
-
-          characterRecord.items[itemType] = record
-          characterRecord.totalPrice += record.totalPrice
-          characterRecord.totalVolume += record.totalVolume
-
-          fleet[character] = characterRecord
+          rows.push([character, itemType, quantityValue, itemGroup])
         }
+      }
+
+      this.prices = await this.getPricePrasial(itemNames, market)
+
+      for (const row of rows) {
+        const [character, itemType, quantityValue, itemGroup] = row
+
+        const characterRecord = Reflect.has(fleet, character)
+          ? fleet[character]
+          : { items: {}, isOrca: false, name: character, alts: [], isMain: true, hasAlts: false, totalVolume: 0, totalPrice: 0 }
+
+        const baseInfo = await this.getBaseInfo(itemType)
+
+        const prices = this.prices[itemType]
+
+        const record = await this.createItemRecord(itemType, itemGroup, quantityValue, baseInfo, prices)
+
+        characterRecord.items[itemType] = record
+        characterRecord.totalPrice += record.totalPrice
+        characterRecord.totalVolume += record.totalVolume
+
+        fleet[character] = characterRecord
       }
 
       this.fleet = fleet
@@ -237,15 +278,6 @@ export default {
      */
     roundPrice (price) {
       return Math.trunc((price + Number.EPSILON))
-    },
-    /**
-     * @param {object[]} orders
-     * @returns {number}
-     */
-    getAvgPrice (orders) {
-      const avgPrice = orders.reduce((sum, { price }) => sum + price, 0) / orders.length
-
-      return this.roundPrice(avgPrice)
     },
     /**
      * Get item base info from sde
@@ -261,62 +293,6 @@ export default {
       }
     },
     /**
-     * Fetch orders, filtered by jita, and get:
-     * - avg sel buy price (by last 3 orders)
-     * - fast sel buy price (by last 1 order)
-     * @param {number} typeId
-     * @returns {object}
-     */
-    async getPrice (typeId) {
-      try {
-        if (this.prices.hasOwnProperty(typeId)) {
-          return this.prices[typeId]
-        } else {
-          const structure = 60003760
-          const { success, data, message } = await this.$api.esi.fetchOrdersByTypeId(typeId)
-
-          if (!success) {
-            // TODO: send alert with message
-            console.error(message)
-            return {
-              fastBuyPrice: 0,
-              fastSelPrice: 0
-            }
-          } else {
-            const sell = []
-            const buy = []
-
-            for (const order of data) {
-              if (order.location_id === structure) {
-                if (order.is_buy_order) {
-                  buy.push(order)
-                } else {
-                  sell.push(order)
-                }
-              }
-            }
-
-            const maxBuyOrders = buy.sort((a, b) => b.price - a.price)
-            const minSellOrders = sell.sort((a, b) => a.price - b.price)
-
-            const fastBuyPrice = this.getAvgPrice(maxBuyOrders.slice(0, 1))
-            const fastSelPrice = this.getAvgPrice(minSellOrders.slice(0, 1))
-
-            const prices = {
-              fastBuyPrice,
-              fastSelPrice
-            }
-
-            this.prices[typeId] = prices
-
-            return prices
-          }
-        }
-      } catch (e) {
-        console.error('getPrice failed', e)
-      }
-    },
-    /**
      *
      * @param {object} prevRecord
      * @param {number} addedQuantity
@@ -327,6 +303,7 @@ export default {
 
       const quantity = prevQuantity + addedQuantity
 
+      console.log(itemType, prices)
       return {
         quantity,
         baseInfo,
@@ -334,7 +311,7 @@ export default {
         itemType,
         itemGroup,
         totalVolume: Math.round(quantity * baseInfo.volume),
-        totalPrice: this.roundPrice(quantity * prices.fastSelPrice)
+        totalPrice: this.roundPrice(quantity * prices.buy.percentile)
       }
     },
     /**
@@ -356,7 +333,7 @@ export default {
         baseInfo,
         prices,
         totalVolume: Math.round(quantity * baseInfo.volume),
-        totalPrice: this.roundPrice(quantity * prices.fastBuyPrice)
+        totalPrice: this.roundPrice(quantity * prices.buy.percentile)
       }
     },
     /**
