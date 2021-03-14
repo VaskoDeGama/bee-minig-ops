@@ -100,32 +100,21 @@ export default {
       const mainRecord = this.fleet[mainCharacter]
       const altRecord = this.fleet[altCharacter]
 
-      altRecord.isMain = false
+      const altItems = Object.values(altRecord.items)
 
-      const totalItems = { ...mainRecord.items }
-      const altItems = altRecord.items
-
-      for (const altItem of Object.values(altItems)) {
-        const {
-          baseInfo,
-          itemGroup,
-          itemType,
-          prices,
-          quantity
-        } = altItem
-
-        if (Reflect.has(totalItems, altItem.itemType)) {
-          totalItems[itemType] = this.updateItemRecord(totalItems[itemType], quantity)
+      for (const { itemType, itemGroup, quantity: addedQuantity, baseInfo, prices } of altItems) {
+        if (Reflect.has(mainRecord.items, itemType)) {
+          mainRecord.items[itemType] = this.updateItemRecord(mainRecord.items[itemType], addedQuantity)
         } else {
-          totalItems[itemType] = await this.createItemRecord(itemType, itemGroup, quantity, false, baseInfo, prices)
+          mainRecord.items[itemType] = this.createItemRecord(itemType, itemGroup, addedQuantity, false, baseInfo, prices)
         }
       }
 
+      altRecord.isMain = false
       mainRecord.totalVolume += altRecord.totalVolume
       mainRecord.totalPrice += altRecord.totalPrice
       mainRecord.alts.push(altCharacter)
       mainRecord.hasAlts = true
-      mainRecord.totalItems = totalItems
     },
     /**
      * Ser isOrca

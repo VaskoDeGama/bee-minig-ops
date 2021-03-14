@@ -50,7 +50,7 @@
     </template>
 
     <b-card-body class="p-0">
-        <b-table class="p-0 m-0" striped hover :fields="itemsFields" :items="Object.values(character.totalItems || character.items)">
+        <b-table class="p-0 m-0" striped hover :fields="itemsFields" :items="Object.values(character.items)">
 
         </b-table>
     </b-card-body>
@@ -78,7 +78,7 @@ export default {
           label: 'Total volume',
           sortable: true,
           formatter: (value) => this.formatter(value, 'm3') },
-        { key: 'prices', label: 'Price per item', formatter: value => this.formatter(value.fastBuyPrice, 'ISK/item') },
+        // { key: 'prices', label: 'Price per item', formatter: value => this.formatter(value.fastBuyPrice, 'ISK/item') },
         { key: 'totalPrice',
           label: 'Total price',
           sortable: true,
