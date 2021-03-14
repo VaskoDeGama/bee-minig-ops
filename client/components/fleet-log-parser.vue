@@ -106,15 +106,16 @@ export default {
         if (Reflect.has(mainRecord.items, itemType)) {
           mainRecord.items[itemType] = this.updateItemRecord(mainRecord.items[itemType], addedQuantity)
         } else {
-          mainRecord.items[itemType] = this.createItemRecord(itemType, itemGroup, addedQuantity, false, baseInfo, prices)
+          mainRecord.items[itemType] = await this.createItemRecord(itemType, itemGroup, addedQuantity, false, baseInfo, prices)
         }
       }
 
       altRecord.isMain = false
       mainRecord.totalVolume += altRecord.totalVolume
-      mainRecord.totalPrice += altRecord.totalPrice
+      mainRecord.totalPrice = this.roundPrice(mainRecord.totalPrice + altRecord.totalPrice)
       mainRecord.alts.push(altCharacter)
       mainRecord.hasAlts = true
+      console.log(mainRecord)
     },
     /**
      * Ser isOrca
