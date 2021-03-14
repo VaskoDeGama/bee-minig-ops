@@ -5,13 +5,13 @@
     </b-col>
     <b-col class="d-flex flex-column">
 
-        <FleetTotal/>
-        <FleetDetails
-            :fleet="fleet"
-            :on-delete-hauler="onDeleteHauler"
-            :has-orca="hasOrca"
-            :on-orca-change="onOrcaChange"
-            :on-select-alt="onSelectAlt"/>
+      <FleetTotal/>
+      <FleetDetails
+          :fleet="fleet"
+          :on-delete-hauler="onDeleteHauler"
+          :has-orca="hasOrca"
+          :on-orca-change="onOrcaChange"
+          :on-select-alt="onSelectAlt"/>
 
     </b-col>
 
@@ -105,22 +105,24 @@ export default {
       const totalItems = { ...mainRecord.items }
       const altItems = altRecord.items
 
-      for (const { itemType, quantity: quantityValue, itemGroup, baseInfo, prices } of Object.values(altItems)) {
-        if (totalItems.hasOwnProperty(itemType)) {
-          const { record, itemTotalVolume, itemTotalPrice } = this.updateItemRecord(altItems[itemType], quantityValue)
+      for (const altItem of Object.values(altItems)) {
+        const {
+          baseInfo,
+          itemGroup,
+          itemType,
+          prices,
+          quantity
+        } = altItem
 
-          mainRecord.items[itemType] = record
-          mainRecord.totalVolume += itemTotalVolume
-          mainRecord.totalPrice += itemTotalPrice
+        if (Reflect.has(totalItems, altItem.itemType)) {
+          totalItems[itemType] = this.updateItemRecord(totalItems[itemType], quantity)
         } else {
-          const { record, itemTotalVolume, itemTotalPrice } = await this.createItemRecord(itemType, itemGroup, quantityValue, false, baseInfo, prices)
-
-          mainRecord.items[itemType] = record
-          mainRecord.totalVolume += itemTotalVolume
-          mainRecord.totalPrice += itemTotalPrice
+          totalItems[itemType] = await this.createItemRecord(itemType, itemGroup, quantity, false, baseInfo, prices)
         }
       }
 
+      mainRecord.totalVolume += altRecord.totalVolume
+      mainRecord.totalPrice += altRecord.totalPrice
       mainRecord.alts.push(altCharacter)
       mainRecord.hasAlts = true
       mainRecord.totalItems = totalItems
@@ -269,26 +271,23 @@ export default {
     /**
      *
      * @param {object} prevRecord
-     * @param {string} quantityValue
+     * @param {string} addedQuantity
      * @returns {object}
      */
-    updateItemRecord (prevRecord, quantityValue) {
+    updateItemRecord (prevRecord, addedQuantity) {
       const { quantity: prevQuantity, baseInfo, prices, itemType, itemGroup } = prevRecord
 
-      const quantity = prevQuantity + parseInt(quantityValue)
+      const quantity = prevQuantity + addedQuantity
 
-      const record = {
+      return {
         quantity,
         baseInfo,
         prices,
         itemType,
         itemGroup,
-        totalVolume: Math.round(prevQuantity + parseInt(quantity) * baseInfo.volume),
+        totalVolume: Math.round(quantity * baseInfo.volume),
         totalPrice: this.roundPrice(quantity * prices.fastSelPrice)
       }
-
-      console.log({ prevRecord, record })
-      return record
     },
     /**
      *
