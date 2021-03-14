@@ -65,7 +65,6 @@ export default {
           sortable: true,
           formatter: (value) => this.formatter(value, 'm3')
         },
-        // { key: 'prices', label: 'Price per item', formatter: value => this.formatter(value.fastBuyPrice, 'ISK/item') },
         {
           key: 'totalPrice',
           label: 'Total price',

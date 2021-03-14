@@ -33,6 +33,8 @@ export default {
   },
   data () {
     return {
+      orcaRewardPercent: 0.1,
+      orcaReward: {},
       fleetParsed: false,
       fleet: {},
       fleetDate: Date.now(),
@@ -168,6 +170,7 @@ export default {
     onOrcaChange (character) {
       this.hasOrca = !this.hasOrca
       this.fleet[character].isOrca = !this.fleet[character].isOrca
+      this.getOrcaReward(this.fleet, character)
     },
     /**
      * Delete hauler from flot isOrca
@@ -184,6 +187,7 @@ export default {
       this.prices = {}
       this.fleet = {}
       this.baseInfo = {}
+      this.orcaReward = {}
       this.fleetParsed = false
 
       const rows = log.split('\n')
@@ -232,7 +236,7 @@ export default {
      * @returns {number} price
      */
     roundPrice (price) {
-      return Math.round((price + Number.EPSILON) * 100) / 100
+      return Math.trunc((price + Number.EPSILON))
     },
     /**
      * @param {object[]} orders
@@ -315,7 +319,7 @@ export default {
     /**
      *
      * @param {object} prevRecord
-     * @param {string} addedQuantity
+     * @param {number} addedQuantity
      * @returns {object}
      */
     updateItemRecord (prevRecord, addedQuantity) {
@@ -337,7 +341,7 @@ export default {
      *
      * @param {string} itemType
      * @param {string} itemGroup
-     * @param {string} quantityValue
+     * @param {string|number} quantityValue
      * @param {object} [baseInfo={}]
      * @param {object} [prices={}]
      * @returns {object}
@@ -368,6 +372,49 @@ export default {
       date.setFullYear(parseInt(year), parseInt(month) - 1, parseInt(day))
       date.setHours(0, 0, 0, 0)
       return date
+    },
+    /**
+     * Толко в одну сторону
+     * @param {object} fleet
+     * @param {string} orcaName
+     */
+    getOrcaReward (fleet, orcaName) {
+      const orcaRecord = fleet[orcaName]
+      const characters = Object.values(fleet).filter(({ name }) => name !== orcaName)
+
+      for (const characterRecord of characters) {
+        const items = Object.values(characterRecord.items)
+
+        for (const item of items) {
+          const { itemType, itemGroup, quantity: quantityValue, baseInfo, prices } = item
+          const reward = Math.round(quantityValue * this.orcaRewardPercent)
+
+          const rewardVolume = Math.round(reward * baseInfo.volume)
+          const rewardPrice = this.roundPrice(reward * prices.fastSelPrice)
+
+          if (Reflect.has(this.orcaReward, itemType)) {
+            this.orcaReward[itemType] = this.orcaReward[itemType] + reward
+          } else {
+            this.orcaReward[itemType] = reward
+          }
+
+          if (Reflect.has(orcaRecord.items, itemType)) {
+            orcaRecord.items[itemType] = this.updateItemRecord(orcaRecord.items[itemType], reward)
+            orcaRecord.totalVolume += rewardVolume
+            orcaRecord.totalPrice += rewardPrice
+          } else {
+            orcaRecord.items[itemType] = this.createItemRecord(itemType, itemGroup, reward, baseInfo, prices)
+            orcaRecord.totalVolume += rewardVolume
+            orcaRecord.totalPrice += rewardPrice
+          }
+
+          characterRecord.items[itemType] = this.updateItemRecord(characterRecord.items[itemType], -reward)
+          characterRecord.totalVolume += -rewardVolume
+          characterRecord.totalPrice += -rewardPrice
+        }
+      }
+
+      console.log(this.orcaReward)
     }
   }
 }
