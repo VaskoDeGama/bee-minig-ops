@@ -5,9 +5,10 @@
     </b-col>
     <b-col class="d-flex flex-column">
 
-      <FleetTotal/>
+      <FleetTotal :fleet-total="fleetTotal" :fleet-parsed="fleetParsed"/>
       <FleetDetails
           :fleet="fleet"
+          :fleet-parsed="fleetParsed"
           :on-delete-hauler="onDeleteHauler"
           :has-orca="hasOrca"
           :on-orca-change="onOrcaChange"
@@ -32,11 +33,9 @@ export default {
   },
   data () {
     return {
-      fleet: {
-        items: {},
-        totalPrice: {},
-        totalVolume: {}
-      },
+      fleetParsed: false,
+      fleet: {},
+      fleetDate: Date.now(),
       invTypes: [],
       loading: false,
       hasOrca: false,
@@ -60,7 +59,53 @@ export default {
       prices: {}
     }
   },
+  computed: {
+    fleetTotal: function () {
+      if (this.fleetParsed) {
+        const fleet = Object.values(this.fleet)
 
+        const totalItems = fleet.reduce((items, character) => {
+          const altItems = Object.values(character.items)
+
+          for (const { itemType, itemGroup, quantity: addedQuantity, baseInfo, prices } of altItems) {
+            if (Reflect.has(items, itemType)) {
+              items[itemType] = this.updateItemRecord(items[itemType], addedQuantity)
+            } else {
+              items[itemType] = this.createItemRecord(itemType, itemGroup, addedQuantity, baseInfo, prices)
+            }
+          }
+
+          return items
+        }, {})
+
+        const totalPrice = this.roundPrice(fleet.reduce((sum, { totalPrice, isMain }) => isMain ? sum + totalPrice : sum, 0))
+        const totalVolume = fleet.reduce((sum, { totalVolume, isMain }) => isMain ? sum + totalVolume : sum, 0)
+
+        const allPilots = fleet.map(({ name }) => name)
+        const mainPilots = fleet.filter(({ isMain }) => isMain).map(({ name, alts, totalPrice, totalVolume }) => {
+          return {
+            name,
+            alts: alts.map(({ name }) => name),
+            totalPrice,
+            totalVolume
+          }
+        })
+        const [orca] = fleet.filter(({ isOrca }) => isOrca)
+
+        return {
+          fleetDate: this.fleetDate,
+          totalPrice,
+          totalVolume,
+          allPilots,
+          mainPilots,
+          orca: orca ? orca.name : '',
+          totalItems
+        }
+      } else {
+        return {}
+      }
+    }
+  },
   async beforeMount () {
     await this.getInvTypes()
   },
@@ -106,16 +151,15 @@ export default {
         if (Reflect.has(mainRecord.items, itemType)) {
           mainRecord.items[itemType] = this.updateItemRecord(mainRecord.items[itemType], addedQuantity)
         } else {
-          mainRecord.items[itemType] = await this.createItemRecord(itemType, itemGroup, addedQuantity, false, baseInfo, prices)
+          mainRecord.items[itemType] = await this.createItemRecord(itemType, itemGroup, addedQuantity, baseInfo, prices)
         }
       }
 
       altRecord.isMain = false
       mainRecord.totalVolume += altRecord.totalVolume
       mainRecord.totalPrice = this.roundPrice(mainRecord.totalPrice + altRecord.totalPrice)
-      mainRecord.alts.push(altCharacter)
+      mainRecord.alts.push(altRecord)
       mainRecord.hasAlts = true
-      console.log(mainRecord)
     },
     /**
      * Ser isOrca
@@ -140,13 +184,17 @@ export default {
       this.prices = {}
       this.fleet = {}
       this.baseInfo = {}
+      this.fleetParsed = false
 
       const rows = log.split('\n')
 
       rows.shift() // remove headers row
       rows.pop() // remove empty row
 
-      const fleet = {}
+      const fleet = { }
+      const [rawDate] = rows[0].split('\t')
+
+      this.fleetDate = this.parseDate(rawDate)
 
       for (const row of rows) {
         const [, character, itemTypeRaw, quantityValue, itemGroupRaw] = row.split('\t')
@@ -163,7 +211,10 @@ export default {
             ? fleet[character]
             : { items: {}, isOrca: false, name: character, alts: [], isMain: true, hasAlts: false, totalVolume: 0, totalPrice: 0 }
 
-          const record = await this.createItemRecord(itemType, itemGroup, quantityValue)
+          const baseInfo = await this.getBaseInfo(itemType)
+          const prices = await this.getPrice(baseInfo.typeID)
+
+          const record = await this.createItemRecord(itemType, itemGroup, quantityValue, baseInfo, prices)
 
           characterRecord.items[itemType] = record
           characterRecord.totalPrice += record.totalPrice
@@ -174,7 +225,7 @@ export default {
       }
 
       this.fleet = fleet
-      console.log(fleet)
+      this.fleetParsed = true
     },
     /**
      * @param {number} price
@@ -199,7 +250,10 @@ export default {
      */
     async getBaseInfo (itemType) {
       if (this.invTypes.hasOwnProperty(itemType)) {
-        return this.invTypes[itemType]
+        const baseInfo = this.invTypes[itemType]
+
+        delete baseInfo.description
+        return baseInfo
       }
     },
     /**
@@ -284,15 +338,11 @@ export default {
      * @param {string} itemType
      * @param {string} itemGroup
      * @param {string} quantityValue
-     * @param {boolean} [withFetch=true]
-     * @param {object} [altBaseInfo={}]
-     * @param {object} [altPrices={}]
-     * @returns {Promise<object>}
+     * @param {object} [baseInfo={}]
+     * @param {object} [prices={}]
+     * @returns {object}
      */
-    async createItemRecord (itemType, itemGroup, quantityValue, withFetch = true, altBaseInfo = {}, altPrices = {}) {
-      const baseInfo = withFetch ? await this.getBaseInfo(itemType) : altBaseInfo
-      const prices = withFetch ? await this.getPrice(baseInfo.typeID) : altPrices
-
+    createItemRecord (itemType, itemGroup, quantityValue, baseInfo = {}, prices = {}) {
       const quantity = parseInt(quantityValue)
 
       return {
@@ -304,6 +354,20 @@ export default {
         totalVolume: Math.round(quantity * baseInfo.volume),
         totalPrice: this.roundPrice(quantity * prices.fastBuyPrice)
       }
+    },
+    /**
+     *
+     * @param {string} rawDate = 2021.03.11 17:26
+     * @returns {Date}
+     */
+    parseDate (rawDate) {
+      const [dateString] = rawDate.split(' ')
+      const [year, month, day] = dateString.split('.')
+      const date = new Date(Date.now())
+
+      date.setFullYear(parseInt(year), parseInt(month) - 1, parseInt(day))
+      date.setHours(0, 0, 0, 0)
+      return date
     }
   }
 }

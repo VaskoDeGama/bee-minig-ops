@@ -14,7 +14,7 @@
           <h6 class="mb-0" >{{ character.name }}</h6>
         </b-col>
         <b-col>
-          <span v-if="character.alts.length > 0" class="ml-3">{{ 'Alts: ' + character.alts.join(', ') }}</span>
+          <span v-if="character.alts.length > 0" class="ml-3">{{ 'Alts: ' + character.alts.map(({name}) => name).join(', ') }}</span>
         </b-col>
 
         <b-col v-if="(character.alts.length === 0) && !character.isOrca" cols="4">

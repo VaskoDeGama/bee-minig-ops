@@ -1,16 +1,92 @@
 <template>
-  <b-card header="Mining ops result" class="mb-3">
-    <b-row>
-      <b-col>
-        <span>coming soon...</span>
-      </b-col>
-    </b-row>
+  <b-card v-if="fleetParsed" footer-class="p-2" no-body class="mb-3">
+    <template #header>
+      <b-row class="d-flex justify-content-center align-items-center ">
+        <h4 class="mb-0">Mining ops result {{ dateFormatter(fleetTotal.fleetDate) }}</h4>
+
+    </b-row></template>
+    <div class="d-flex flex-column  justify-content-center align-items-center">
+      <h5 class="mt-2">Members personal result</h5>
+      <b-table class="p-0 mb-2" striped hover bordered :fields="membersFields" :items="Object.values(fleetTotal.mainPilots)">
+        <template #cell(name)="data">
+          <b class="text-info">{{ data.item.name }}</b> <b-badge v-if="data.item.name === fleetTotal.orca" variant="success">orca</b-badge>
+        </template>
+      </b-table>
+      <h5>Fleet result</h5>
+      <b-table class="p-0 m-0" striped hover :fields="itemsFields" :items="Object.values(fleetTotal.totalItems)"></b-table>
+    </div>
+
+    <template #footer>
+      <b-row class="d-flex justify-content-around align-items-center">
+
+        <b-col class="d-flex justify-content-center align-items-center">Total volume: <span class="font-weight-bold">{{ formatter(fleetTotal.totalVolume, 'm3') || '' }}</span></b-col>
+        <b-col>Total isk: <span class="font-weight-bold">{{ formatter(fleetTotal.totalPrice, 'ISK') || '' }}</span></b-col>
+      </b-row>
+    </template>
   </b-card>
 </template>
 
 <script>
 export default {
-  name: 'FleetResult'
+  name: 'FleetResult',
+  props: ['fleetTotal', 'fleetParsed'],
+  data () {
+    return {
+      membersFields: [
+        { key: 'name',
+          label: 'Main character'
+        },
+        {
+          key: 'totalVolume',
+          label: 'Total volume',
+          sortable: true,
+          formatter: (value) => this.formatter(value, 'm3')
+        },
+        { key: 'alts',
+          label: 'Alts characters',
+          formatter: (value) => {
+            return value.length > 0 ? value.join(', ') : 'none'
+          }
+        },
+        {
+          key: 'totalPrice',
+          label: 'Total price',
+          sortable: true,
+          formatter: (value) => this.formatter(value, 'ISK')
+        }
+      ],
+
+      itemsFields: [
+        { key: 'itemType', sortable: true },
+        { key: 'quantity', sortable: true },
+        {
+          key: 'totalVolume',
+          label: 'Total volume',
+          sortable: true,
+          formatter: (value) => this.formatter(value, 'm3')
+        },
+        // { key: 'prices', label: 'Price per item', formatter: value => this.formatter(value.fastBuyPrice, 'ISK/item') },
+        {
+          key: 'totalPrice',
+          label: 'Total price',
+          sortable: true,
+          formatter: (value) => this.formatter(value, 'ISK')
+        }
+      ]
+    }
+  },
+  methods: {
+    formatter (value = 0, unitText = '') {
+      const str = value.toString().replace(/(?!^)(?=(?:\d{3})+(?:\.|$))/gm, ',')
+
+      return `${str} ${unitText}`
+    },
+    dateFormatter (date) {
+      return new Intl.DateTimeFormat('en-EU', {
+        dateStyle: 'long'
+      }).format(date)
+    }
+  }
 }
 </script>
 

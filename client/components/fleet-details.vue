@@ -1,5 +1,5 @@
 <template>
-<div>
+<div v-if="fleetParsed">
     <CharacterTable v-for="(character, characterName) in fleet" :key="characterName"
     :on-select-alt="onSelectAlt"
     :on-orca-change="onOrcaChange"
@@ -19,7 +19,7 @@ export default {
     CharacterTable
 
   },
-  props: ['fleet', 'onSelectAlt', 'onOrcaChange', 'hasOrca', 'onDeleteHauler'],
+  props: ['fleet', 'onSelectAlt', 'onOrcaChange', 'hasOrca', 'onDeleteHauler', 'fleetParsed'],
   computed: {
     options: function () {
       return [
