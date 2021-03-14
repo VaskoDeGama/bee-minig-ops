@@ -1,5 +1,5 @@
 <template>
-<div v-if="fleetParsed" class="d-flex flex-column justify-content-between align-items-stretch">
+<div v-if="fleetParsed" class="d-flex m-0 p-0 flex-column justify-content-between align-items-stretch">
     <h5 class="align-self-center">Fleet member details</h5>
     <CharacterTable v-for="(character, characterName) in fleet" :key="characterName"
     :on-select-alt="onSelectAlt"
