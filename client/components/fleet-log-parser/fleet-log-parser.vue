@@ -4,7 +4,7 @@
       <ParseForm :parse-log="parseLog"/>
     </b-col>
     <b-col class="d-flex flex-column">
-      <FleetTotal :fleet-total="fleetTotal" :fleet-parsed="fleetParsed"/>
+      <FleetTotal :fleet="fleet" :fleet-parsed="fleetParsed"/>
       <FleetDetails
           :fleet="fleet"
           :fleet-parsed="fleetParsed"
@@ -23,6 +23,8 @@
 import FleetTotal from './fleet-result.vue'
 import FleetDetails from './fleet-details.vue'
 import ParseForm from './parse-form.vue'
+
+import { updateItemRecord, createItemRecord, roundPrice, parseDate } from './utils.js'
 
 export default {
   components: {
@@ -58,53 +60,6 @@ export default {
         'Spodumain'],
       baseInfo: {},
       prices: {}
-    }
-  },
-  computed: {
-    fleetTotal: function () {
-      if (this.fleetParsed) {
-        const fleet = Object.values(this.fleet)
-
-        const totalItems = fleet.reduce((items, character) => {
-          const altItems = Object.values(character.items)
-
-          for (const { itemType, itemGroup, quantity: addedQuantity, baseInfo, prices } of altItems) {
-            if (Reflect.has(items, itemType)) {
-              items[itemType] = this.updateItemRecord(items[itemType], addedQuantity)
-            } else {
-              items[itemType] = this.createItemRecord(itemType, itemGroup, addedQuantity, baseInfo, prices)
-            }
-          }
-
-          return items
-        }, {})
-
-        const totalPrice = this.roundPrice(fleet.reduce((sum, { totalPrice, isMain }) => isMain ? sum + totalPrice : sum, 0))
-        const totalVolume = fleet.reduce((sum, { totalVolume, isMain }) => isMain ? sum + totalVolume : sum, 0)
-
-        const allPilots = fleet.map(({ name }) => name)
-        const mainPilots = fleet.filter(({ isMain }) => isMain).map(({ name, alts, totalPrice, totalVolume }) => {
-          return {
-            name,
-            alts: alts.map(({ name }) => name),
-            totalPrice,
-            totalVolume
-          }
-        })
-        const [orca] = fleet.filter(({ isOrca }) => isOrca)
-
-        return {
-          fleetDate: this.fleetDate,
-          totalPrice,
-          totalVolume,
-          allPilots,
-          mainPilots,
-          orca: orca ? orca.name : '',
-          totalItems
-        }
-      } else {
-        return {}
-      }
     }
   },
   async beforeMount () {
@@ -175,15 +130,15 @@ export default {
 
       for (const { itemType, itemGroup, quantity: addedQuantity, baseInfo, prices } of altItems) {
         if (Reflect.has(mainRecord.items, itemType)) {
-          mainRecord.items[itemType] = this.updateItemRecord(mainRecord.items[itemType], addedQuantity)
+          mainRecord.items[itemType] = updateItemRecord(mainRecord.items[itemType], addedQuantity)
         } else {
-          mainRecord.items[itemType] = await this.createItemRecord(itemType, itemGroup, addedQuantity, baseInfo, prices)
+          mainRecord.items[itemType] = await createItemRecord(itemType, itemGroup, addedQuantity, baseInfo, prices)
         }
       }
 
       altRecord.isMain = false
       mainRecord.totalVolume += altRecord.totalVolume
-      mainRecord.totalPrice = this.roundPrice(mainRecord.totalPrice + altRecord.totalPrice)
+      mainRecord.totalPrice = roundPrice(mainRecord.totalPrice + altRecord.totalPrice)
       mainRecord.alts.push(altRecord)
       mainRecord.hasAlts = true
     },
@@ -225,7 +180,7 @@ export default {
 
       const [rawDate] = rawRows[0].split('\t')
 
-      this.fleetDate = this.parseDate(rawDate)
+      this.fleetDate = parseDate(rawDate)
 
       const rows = []
       const itemNames = []
@@ -262,7 +217,7 @@ export default {
 
         const prices = this.prices[itemType]
 
-        const record = await this.createItemRecord(itemType, itemGroup, quantityValue, baseInfo, prices)
+        const record = await createItemRecord(itemType, itemGroup, quantityValue, baseInfo, prices)
 
         characterRecord.items[itemType] = record
         characterRecord.totalPrice += record.totalPrice
@@ -274,13 +229,7 @@ export default {
       this.fleet = fleet
       this.fleetParsed = true
     },
-    /**
-     * @param {number} price
-     * @returns {number} price
-     */
-    roundPrice (price) {
-      return Math.trunc((price + Number.EPSILON))
-    },
+
     /**
      * Get item base info from sde
      * @param {string} itemType
@@ -294,64 +243,7 @@ export default {
         return baseInfo
       }
     },
-    /**
-     *
-     * @param {object} prevRecord
-     * @param {number} addedQuantity
-     * @returns {object}
-     */
-    updateItemRecord (prevRecord, addedQuantity) {
-      const { quantity: prevQuantity, baseInfo, prices, itemType, itemGroup } = prevRecord
 
-      const quantity = prevQuantity + addedQuantity
-
-      console.log(itemType, prices)
-      return {
-        quantity,
-        baseInfo,
-        prices,
-        itemType,
-        itemGroup,
-        totalVolume: Math.round(quantity * baseInfo.volume),
-        totalPrice: this.roundPrice(quantity * prices.buy.percentile)
-      }
-    },
-    /**
-     *
-     * @param {string} itemType
-     * @param {string} itemGroup
-     * @param {string|number} quantityValue
-     * @param {object} [baseInfo={}]
-     * @param {object} [prices={}]
-     * @returns {object}
-     */
-    createItemRecord (itemType, itemGroup, quantityValue, baseInfo = {}, prices = {}) {
-      const quantity = parseInt(quantityValue)
-
-      return {
-        itemType,
-        quantity,
-        itemGroup,
-        baseInfo,
-        prices,
-        totalVolume: Math.round(quantity * baseInfo.volume),
-        totalPrice: this.roundPrice(quantity * prices.buy.percentile)
-      }
-    },
-    /**
-     *
-     * @param {string} rawDate = 2021.03.11 17:26
-     * @returns {Date}
-     */
-    parseDate (rawDate) {
-      const [dateString] = rawDate.split(' ')
-      const [year, month, day] = dateString.split('.')
-      const date = new Date(Date.now())
-
-      date.setFullYear(parseInt(year), parseInt(month) - 1, parseInt(day))
-      date.setHours(0, 0, 0, 0)
-      return date
-    },
     /**
      * Толко в одну сторону
      * @param {object} fleet
@@ -369,7 +261,7 @@ export default {
           const reward = Math.round(quantityValue * this.orcaRewardPercent)
 
           const rewardVolume = Math.round(reward * baseInfo.volume)
-          const rewardPrice = this.roundPrice(reward * prices.buy.percentile)
+          const rewardPrice = roundPrice(reward * prices.buy.percentile)
 
           if (Reflect.has(this.orcaReward, itemType)) {
             this.orcaReward[itemType] = this.orcaReward[itemType] + reward
@@ -378,16 +270,16 @@ export default {
           }
 
           if (Reflect.has(orcaRecord.items, itemType)) {
-            orcaRecord.items[itemType] = this.updateItemRecord(orcaRecord.items[itemType], reward)
+            orcaRecord.items[itemType] = updateItemRecord(orcaRecord.items[itemType], reward)
             orcaRecord.totalVolume += rewardVolume
             orcaRecord.totalPrice += rewardPrice
           } else {
-            orcaRecord.items[itemType] = this.createItemRecord(itemType, itemGroup, reward, baseInfo, prices)
+            orcaRecord.items[itemType] = createItemRecord(itemType, itemGroup, reward, baseInfo, prices)
             orcaRecord.totalVolume += rewardVolume
             orcaRecord.totalPrice += rewardPrice
           }
 
-          characterRecord.items[itemType] = this.updateItemRecord(characterRecord.items[itemType], -reward)
+          characterRecord.items[itemType] = updateItemRecord(characterRecord.items[itemType], -reward)
           characterRecord.totalVolume += -rewardVolume
           characterRecord.totalPrice += -rewardPrice
         }

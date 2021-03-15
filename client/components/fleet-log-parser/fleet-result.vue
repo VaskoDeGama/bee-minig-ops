@@ -27,9 +27,11 @@
 </template>
 
 <script>
+import { createItemRecord, roundPrice, updateItemRecord } from './utils'
+
 export default {
   name: 'FleetResult',
-  props: ['fleetTotal', 'fleetParsed'],
+  props: ['fleet', 'fleetParsed'],
   data () {
     return {
       membersFields: [
@@ -72,6 +74,53 @@ export default {
           formatter: (value) => this.formatter(value, 'ISK')
         }
       ]
+    }
+  },
+  computed: {
+    fleetTotal: function () {
+      if (this.fleetParsed) {
+        const fleet = Object.values(this.fleet)
+
+        const totalItems = fleet.reduce((items, character) => {
+          const altItems = Object.values(character.items)
+
+          for (const { itemType, itemGroup, quantity: addedQuantity, baseInfo, prices } of altItems) {
+            if (Reflect.has(items, itemType)) {
+              items[itemType] = updateItemRecord(items[itemType], addedQuantity)
+            } else {
+              items[itemType] = createItemRecord(itemType, itemGroup, addedQuantity, baseInfo, prices)
+            }
+          }
+
+          return items
+        }, {})
+
+        const totalPrice = roundPrice(fleet.reduce((sum, { totalPrice, isMain }) => isMain ? sum + totalPrice : sum, 0))
+        const totalVolume = fleet.reduce((sum, { totalVolume, isMain }) => isMain ? sum + totalVolume : sum, 0)
+
+        const allPilots = fleet.map(({ name }) => name)
+        const mainPilots = fleet.filter(({ isMain }) => isMain).map(({ name, alts, totalPrice, totalVolume }) => {
+          return {
+            name,
+            alts: alts.map(({ name }) => name),
+            totalPrice,
+            totalVolume
+          }
+        })
+        const [orca] = fleet.filter(({ isOrca }) => isOrca)
+
+        return {
+          fleetDate: this.fleetDate,
+          totalPrice,
+          totalVolume,
+          allPilots,
+          mainPilots,
+          orca: orca ? orca.name : '',
+          totalItems
+        }
+      } else {
+        return {}
+      }
     }
   },
   methods: {
