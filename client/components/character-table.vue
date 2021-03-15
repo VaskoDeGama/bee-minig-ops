@@ -3,15 +3,15 @@
     <template #header>
       <b-row class="d-flex flex-row justify-content-around align-items-center">
 
-        <b-col v-if="!hasOrca || character.isOrca" cols="1">
+        <b-col v-if="!hasOrca" cols="1">
           <b-button
             size="sm"
-            :variant="character.isOrca ? 'success' :'secondary'"
+            variant="secondary"
             @click="onOrcaChange(character.name)">Orca
         </b-button>
         </b-col>
         <b-col cols="4">
-          <h6 class="mb-0" >{{ character.name }}</h6>
+          <h6 class="mb-0" >{{ character.name }} <b-badge v-if="character.isOrca" variant="success">Orca</b-badge></h6>
         </b-col>
         <b-col>
           <span v-if="character.alts.length > 0" class="ml-3">{{ 'Alts: ' + character.alts.map(({name}) => name).join(', ') }}</span>

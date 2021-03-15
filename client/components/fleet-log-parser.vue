@@ -192,9 +192,11 @@ export default {
      * @param {string} character
      */
     onOrcaChange (character) {
-      this.hasOrca = !this.hasOrca
-      this.fleet[character].isOrca = !this.fleet[character].isOrca
-      this.getOrcaReward(this.fleet, character)
+      if (!this.hasOrca) {
+        this.hasOrca = !this.hasOrca
+        this.fleet[character].isOrca = !this.fleet[character].isOrca
+        this.getOrcaReward(this.fleet, character)
+      }
     },
     /**
      * Delete hauler from flot isOrca
@@ -206,7 +208,7 @@ export default {
     /**
      * Parse fleet log to object
      * @param {string} log
-     * @param market
+     * @param {string} market
      */
     async parseLog (log, market) {
       this.prices = {}
@@ -367,7 +369,7 @@ export default {
           const reward = Math.round(quantityValue * this.orcaRewardPercent)
 
           const rewardVolume = Math.round(reward * baseInfo.volume)
-          const rewardPrice = this.roundPrice(reward * prices.fastSelPrice)
+          const rewardPrice = this.roundPrice(reward * prices.buy.percentile)
 
           if (Reflect.has(this.orcaReward, itemType)) {
             this.orcaReward[itemType] = this.orcaReward[itemType] + reward
