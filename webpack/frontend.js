@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 
 module.exports = {
-  entry: './client/server.js',
+  entry: './client/index.js',
   output: {
     filename: 'bundle.[contenthash].js',
     path: path.resolve('dist')
