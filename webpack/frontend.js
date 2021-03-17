@@ -8,6 +8,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 module.exports = {
   entry: './client/index.js',
   output: {
+    publicPath: '/',
     filename: 'bundle.[contenthash].js',
     path: path.resolve('dist'),
     clean: true
