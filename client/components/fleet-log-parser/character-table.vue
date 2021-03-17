@@ -66,6 +66,8 @@
 </template>
 
 <script>
+import { numberToEveFormat } from './utils'
+
 export default {
   name: 'CharacterTable',
   props: ['character', 'onSelectAlt', 'options', 'onOrcaChange', 'hasOrca', 'onDeleteHauler'],
@@ -77,24 +79,17 @@ export default {
         { key: 'totalVolume',
           label: 'Total volume',
           sortable: true,
-          formatter: (value) => this.formatter(value, 'm3') },
-        // { key: 'prices', label: 'Price per item', formatter: value => this.formatter(value.fastBuyPrice, 'ISK/item') },
+          formatter: (value) => numberToEveFormat(value, 'm3') },
         { key: 'totalPrice',
           label: 'Total price',
           sortable: true,
-          formatter: (value) => this.formatter(value, 'ISK') }
-
+          formatter: (value) => numberToEveFormat(value, 'ISK') }
       ]
     }
   },
   methods: {
-    formatter (value = 0, unitText = '') {
-      const str = value.toString().replace(/(?!^)(?=(?:\d{3})+(?:\.|$))/gm, ',')
-
-      return `${str} ${unitText}`
-    }
+    formatter: numberToEveFormat
   }
-
 }
 </script>
 

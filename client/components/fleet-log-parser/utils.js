@@ -8,23 +8,33 @@ const roundPrice = (price) => {
 
 /**
  *
+ * @param {number} value
+ * @param {string} [unitText='']
+ * @returns {string}
+ */
+const numberToEveFormat = (value = 0, unitText = '') => {
+  const str = value.toString().replace(/(?!^)(?=(?:\d{3})+(?:\.|$))/gm, ',')
+
+  return `${str} ${unitText}`
+}
+
+/**
+ *
  * @param {object} prevRecord
  * @param {number} addedQuantity
  * @returns {object}
  */
 const updateItemRecord = (prevRecord, addedQuantity) => {
-  const { quantity: prevQuantity, baseInfo, prices, itemType, itemGroup } = prevRecord
+  const { quantity: prevQuantity, prices, itemType, itemGroup } = prevRecord
 
   const quantity = prevQuantity + addedQuantity
 
-  console.log(itemType, prices)
   return {
     quantity,
-    baseInfo,
     prices,
     itemType,
     itemGroup,
-    totalVolume: Math.round(quantity * baseInfo.volume),
+    totalVolume: Math.round(quantity * prices.typeVolume),
     totalPrice: roundPrice(quantity * prices.buy.percentile)
   }
 }
@@ -33,20 +43,18 @@ const updateItemRecord = (prevRecord, addedQuantity) => {
  * @param {string} itemType
  * @param {string} itemGroup
  * @param {string|number} quantityValue
- * @param {object} [baseInfo={}]
  * @param {object} [prices={}]
  * @returns {object}
  */
-const createItemRecord = (itemType, itemGroup, quantityValue, baseInfo = {}, prices = {}) => {
+const createItemRecord = (itemType, itemGroup, quantityValue, prices = {}) => {
   const quantity = parseInt(quantityValue)
 
   return {
     itemType,
     quantity,
     itemGroup,
-    baseInfo,
     prices,
-    totalVolume: Math.round(quantity * baseInfo.volume),
+    totalVolume: Math.round(quantity * prices.typeVolume),
     totalPrice: roundPrice(quantity * prices.buy.percentile)
   }
 }
@@ -66,9 +74,21 @@ const parseDate = (rawDate) => {
   return date
 }
 
+/**
+ * @param {Date} date
+ * @returns {string}
+ */
+const dateToLongString = (date) => {
+  return new Intl.DateTimeFormat('en-EU', {
+    dateStyle: 'long'
+  }).format(date)
+}
+
 export {
   parseDate,
   updateItemRecord,
   createItemRecord,
-  roundPrice
+  roundPrice,
+  numberToEveFormat,
+  dateToLongString
 }

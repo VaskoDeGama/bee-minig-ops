@@ -39,7 +39,6 @@ export default {
       fleetParsed: false,
       fleet: {},
       fleetDate: Date.now(),
-      invTypes: [],
       loading: false,
       hasOrca: false,
       itemsFilter: [
@@ -58,12 +57,8 @@ export default {
         'Kernite',
         'Omber',
         'Spodumain'],
-      baseInfo: {},
       prices: {}
     }
-  },
-  async beforeMount () {
-    await this.getInvTypes()
   },
   methods: {
     /**
@@ -83,29 +78,13 @@ export default {
 
         for (const item of items) {
           prices[item.name] = item.prices
+          prices[item.name]['typeVolume'] = item.typeVolume
         }
 
         return prices
       } else {
         console.error(message)
         return {}
-      }
-    },
-    /**
-     * Fetch baseInfo table
-     * @returns {Promise<void>}
-     */
-    async getInvTypes () {
-      const { success, data, message } = await this.$api.sde.fetchInvTypes()
-
-      if (success) {
-        this.invTypes = data.reduce((types, value) => {
-          types[value.typeName] = value
-          return types
-        })
-      } else {
-        // TODO: show message alert
-        console.error(message)
       }
     },
     /**
@@ -128,11 +107,11 @@ export default {
 
       const altItems = Object.values(altRecord.items)
 
-      for (const { itemType, itemGroup, quantity: addedQuantity, baseInfo, prices } of altItems) {
+      for (const { itemType, itemGroup, quantity: addedQuantity, prices } of altItems) {
         if (Reflect.has(mainRecord.items, itemType)) {
           mainRecord.items[itemType] = updateItemRecord(mainRecord.items[itemType], addedQuantity)
         } else {
-          mainRecord.items[itemType] = await createItemRecord(itemType, itemGroup, addedQuantity, baseInfo, prices)
+          mainRecord.items[itemType] = createItemRecord(itemType, itemGroup, addedQuantity, prices)
         }
       }
 
@@ -168,7 +147,6 @@ export default {
     async parseLog (log, market) {
       this.prices = {}
       this.fleet = {}
-      this.baseInfo = {}
       this.orcaReward = {}
       this.fleetParsed = false
 
@@ -213,11 +191,9 @@ export default {
           ? fleet[character]
           : { items: {}, isOrca: false, name: character, alts: [], isMain: true, hasAlts: false, totalVolume: 0, totalPrice: 0 }
 
-        const baseInfo = await this.getBaseInfo(itemType)
-
         const prices = this.prices[itemType]
 
-        const record = await createItemRecord(itemType, itemGroup, quantityValue, baseInfo, prices)
+        const record = createItemRecord(itemType, itemGroup, quantityValue, prices)
 
         characterRecord.items[itemType] = record
         characterRecord.totalPrice += record.totalPrice
@@ -228,20 +204,6 @@ export default {
 
       this.fleet = fleet
       this.fleetParsed = true
-    },
-
-    /**
-     * Get item base info from sde
-     * @param {string} itemType
-     * @returns {null | object}
-     */
-    async getBaseInfo (itemType) {
-      if (this.invTypes.hasOwnProperty(itemType)) {
-        const baseInfo = this.invTypes[itemType]
-
-        delete baseInfo.description
-        return baseInfo
-      }
     },
 
     /**
@@ -257,10 +219,10 @@ export default {
         const items = Object.values(characterRecord.items)
 
         for (const item of items) {
-          const { itemType, itemGroup, quantity: quantityValue, baseInfo, prices } = item
+          const { itemType, itemGroup, quantity: quantityValue, prices } = item
           const reward = Math.round(quantityValue * this.orcaRewardPercent)
 
-          const rewardVolume = Math.round(reward * baseInfo.volume)
+          const rewardVolume = Math.round(reward * prices.typeVolume)
           const rewardPrice = roundPrice(reward * prices.buy.percentile)
 
           if (Reflect.has(this.orcaReward, itemType)) {
@@ -274,7 +236,7 @@ export default {
             orcaRecord.totalVolume += rewardVolume
             orcaRecord.totalPrice += rewardPrice
           } else {
-            orcaRecord.items[itemType] = createItemRecord(itemType, itemGroup, reward, baseInfo, prices)
+            orcaRecord.items[itemType] = createItemRecord(itemType, itemGroup, reward, prices)
             orcaRecord.totalVolume += rewardVolume
             orcaRecord.totalPrice += rewardPrice
           }
@@ -284,8 +246,6 @@ export default {
           characterRecord.totalPrice += -rewardPrice
         }
       }
-
-      console.log(this.orcaReward)
     }
   }
 }

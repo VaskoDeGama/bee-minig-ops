@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { createItemRecord, roundPrice, updateItemRecord } from './utils'
+import { createItemRecord, roundPrice, updateItemRecord, numberToEveFormat, dateToLongString } from './utils'
 
 export default {
   name: 'FleetResult',
@@ -42,7 +42,7 @@ export default {
           key: 'totalVolume',
           label: 'Total volume',
           sortable: true,
-          formatter: (value) => this.formatter(value, 'm3')
+          formatter: (value) => numberToEveFormat(value, 'm3')
         },
         { key: 'alts',
           label: 'Alts characters',
@@ -54,7 +54,7 @@ export default {
           key: 'totalPrice',
           label: 'Total price',
           sortable: true,
-          formatter: (value) => this.formatter(value, 'ISK')
+          formatter: (value) => numberToEveFormat(value, 'ISK')
         }
       ],
 
@@ -65,13 +65,13 @@ export default {
           key: 'totalVolume',
           label: 'Total volume',
           sortable: true,
-          formatter: (value) => this.formatter(value, 'm3')
+          formatter: (value) => numberToEveFormat(value, 'm3')
         },
         {
           key: 'totalPrice',
           label: 'Total price',
           sortable: true,
-          formatter: (value) => this.formatter(value, 'ISK')
+          formatter: (value) => numberToEveFormat(value, 'ISK')
         }
       ]
     }
@@ -84,11 +84,11 @@ export default {
         const totalItems = fleet.reduce((items, character) => {
           const altItems = Object.values(character.items)
 
-          for (const { itemType, itemGroup, quantity: addedQuantity, baseInfo, prices } of altItems) {
+          for (const { itemType, itemGroup, quantity: addedQuantity, prices } of altItems) {
             if (Reflect.has(items, itemType)) {
               items[itemType] = updateItemRecord(items[itemType], addedQuantity)
             } else {
-              items[itemType] = createItemRecord(itemType, itemGroup, addedQuantity, baseInfo, prices)
+              items[itemType] = createItemRecord(itemType, itemGroup, addedQuantity, prices)
             }
           }
 
@@ -124,16 +124,8 @@ export default {
     }
   },
   methods: {
-    formatter (value = 0, unitText = '') {
-      const str = value.toString().replace(/(?!^)(?=(?:\d{3})+(?:\.|$))/gm, ',')
-
-      return `${str} ${unitText}`
-    },
-    dateFormatter (date) {
-      return new Intl.DateTimeFormat('en-EU', {
-        dateStyle: 'long'
-      }).format(date)
-    }
+    formatter: numberToEveFormat,
+    dateFormatter: dateToLongString
   }
 }
 </script>
