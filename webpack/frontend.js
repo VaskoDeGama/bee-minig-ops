@@ -9,7 +9,8 @@ module.exports = {
   entry: './client/index.js',
   output: {
     filename: 'bundle.[contenthash].js',
-    path: path.resolve('dist')
+    path: path.resolve('dist'),
+    clean: true
   },
 
   module: {
