@@ -7,8 +7,8 @@
     "dev": "webpack serve",
     "lint": "eslint --fix --ext .js,.vue client webpack",
     "build": "webpack",
-    "server": "nodemon ./server/index.js",
-    "start": "node ./server/index.js"
+    "server": "nodemon server/server.js",
+    "start": "node server/server.js"
   },
   "author": "VaskaDaGama (karmenyuk@yandex.ru)",
   "license": "ISC",

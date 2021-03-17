@@ -20,7 +20,7 @@ const fetchOrdersByTypeId = async (typeId) => {
 
 const fetchPricesFromEvePrasial = async (types, market) => {
   try {
-    const response = await fetch(`https://bee-mining-ops.herokuapp.com/api/getPrices`, {
+    const response = await fetch(`http://mining-ops.org/api/getPrices`, {
       method: 'POST',
       mode: 'cors', // no-cors, *cors, same-origin
       cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
