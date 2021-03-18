@@ -148,6 +148,7 @@ export default {
     async parseLog (log, market) {
       if (!log || log.length < 20) {
         // TODO show alert
+        console.log('log', log)
         return
       }
 

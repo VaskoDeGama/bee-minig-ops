@@ -4,5 +4,5 @@ echo 'Build bundle' \
 && echo 'Remove bundle' \
 && ssh $1@$2 'rm -rf ~/front/*' \
 && echo 'Transfer bundle' \
-&& scp -r dist/* $1@$2:~/front \
+&& rsync -aP dist/* $1@$2:~/front/ \
 && echo 'Deploy done'
