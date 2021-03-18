@@ -1,6 +1,6 @@
 const fetchPricesFromEvePrasial = async (types, market) => {
   try {
-    const response = await fetch(`https://mining-ops.org/api/getPrices`, {
+    const response = await fetch(process.env.ENDPOINT, {
       method: 'POST',
       mode: 'cors', // no-cors, *cors, same-origin
       cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached

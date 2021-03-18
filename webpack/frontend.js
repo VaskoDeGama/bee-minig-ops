@@ -4,6 +4,7 @@ const path = require('path')
 const { VueLoaderPlugin } = require('vue-loader')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
+const Dotenv = require('dotenv-webpack')
 
 module.exports = {
   entry: './client/index.js',
@@ -19,11 +20,8 @@ module.exports = {
       {
         test: /\.s[ac]ss$/i,
         use: [
-          // Creates `style` nodes from JS strings
           'style-loader',
-          // Translates CSS into CommonJS
           'css-loader',
-          // Compiles Sass to CSS
           'sass-loader'
         ]
       },
@@ -52,11 +50,6 @@ module.exports = {
     ]
   },
   plugins: [
-    new CopyPlugin({
-      patterns: [
-        { from: 'client/assets/static', to: 'static' }
-      ]
-    }),
     new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
       templateContent: `<!doctype html>
@@ -70,11 +63,24 @@ module.exports = {
                     <div id="app"></div>
                   </body>
                 </html>`
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: 'client/assets/static', to: 'static' }
+      ]
+    }),
+    new Dotenv({
+      path: process.env.NODE_ENV === 'production' ? '.env' : '.env.defaults'
     })
   ],
   resolve: {
     alias: {
       'vue$': 'vue/dist/vue.esm.js'
     }
+  },
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  devtool: false,
+  performance: {
+    hints: false
   }
 }

@@ -22,7 +22,7 @@
 
 import FleetTotal from './fleet-result.vue'
 import FleetDetails from './fleet-details.vue'
-import ParseForm from './parse-form.vue'
+import ParseForm from '../parse-form.vue'
 
 import { updateItemRecord, createItemRecord, roundPrice, parseDate } from './utils.js'
 import api from '../../services/api'
