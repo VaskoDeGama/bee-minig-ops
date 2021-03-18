@@ -146,6 +146,11 @@ export default {
      * @param {string} market
      */
     async parseLog (log, market) {
+      if (!log || log.length < 20) {
+        // TODO show alert
+        return
+      }
+
       this.prices = {}
       this.fleet = {}
       this.orcaReward = {}

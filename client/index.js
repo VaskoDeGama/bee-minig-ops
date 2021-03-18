@@ -24,8 +24,6 @@ const router = new VueRouter({
   routes
 })
 
-console.log(process.env)
-
 new Vue({ // eslint-disable-line
   router,
   el: '#app',
