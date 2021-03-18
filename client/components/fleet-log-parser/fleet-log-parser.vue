@@ -25,6 +25,7 @@ import FleetDetails from './fleet-details.vue'
 import ParseForm from './parse-form.vue'
 
 import { updateItemRecord, createItemRecord, roundPrice, parseDate } from './utils.js'
+import api from '../../services/api'
 
 export default {
   components: {
@@ -70,7 +71,7 @@ export default {
       const formattedTypes = types.map(name => {
         return { name }
       })
-      const { success, data, message } = await this.$api.esi.fetchPricesFromEvePrasial(formattedTypes, market)
+      const { success, data, message } = await api.fetchPricesFromEvePrasial(formattedTypes, market)
 
       if (success) {
         const { items } = data
