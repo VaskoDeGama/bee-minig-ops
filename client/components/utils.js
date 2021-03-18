@@ -1,3 +1,4 @@
+
 /**
  * @param {number} price
  * @returns {number} price
@@ -7,15 +8,39 @@ const roundPrice = (price) => {
 }
 
 /**
+ * Remove *
+ * @param {string} str
+ * @returns {string}
+ */
+const normalizeString = (str) => {
+  const normStr = str.match(/"(\w.*)"/) ? str.match(/"(\w.*)"/)[1] : str
+
+  return normStr.replace(/\*/g, '')
+}
+
+/**
+ * Remove *
+ * @param {string} str
+ * @returns {number}
+ */
+const parseNumber = (str) => {
+  return parseInt(str.replace(/\s/g, ''))
+}
+
+/**
  *
  * @param {number} value
  * @param {string} [unitText='']
  * @returns {string}
  */
 const numberToEveFormat = (value = 0, unitText = '') => {
-  const str = value.toString().replace(/(?!^)(?=(?:\d{3})+(?:\.|$))/gm, ',')
+  const [int, flt] = value.toString().split('.')
 
-  return `${str} ${unitText}`
+  const normFlr = flt && flt.length > 2 ? flt.slice(0, 2) : flt
+
+  const str = int.replace(/(?!^)(?=(?:\d{3})+(?:\.|$))/gm, ',')
+
+  return `${str}${normFlr ? `,${normFlr}` : ''} ${unitText}`
 }
 
 /**
@@ -35,7 +60,7 @@ const updateItemRecord = (prevRecord, addedQuantity) => {
     itemType,
     itemGroup,
     totalVolume: Math.round(quantity * prices.typeVolume),
-    totalPrice: roundPrice(quantity * prices.buy.percentile)
+    totalPrice: roundPrice(quantity * prices.buy.max)
   }
 }
 /**
@@ -55,7 +80,7 @@ const createItemRecord = (itemType, itemGroup, quantityValue, prices = {}) => {
     itemGroup,
     prices,
     totalVolume: Math.round(quantity * prices.typeVolume),
-    totalPrice: roundPrice(quantity * prices.buy.percentile)
+    totalPrice: roundPrice(quantity * prices.buy.max)
   }
 }
 
@@ -90,5 +115,7 @@ export {
   createItemRecord,
   roundPrice,
   numberToEveFormat,
-  dateToLongString
+  dateToLongString,
+  normalizeString,
+  parseNumber
 }

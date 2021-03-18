@@ -4,7 +4,7 @@
       <b-form-textarea
           id="textarea"
           v-model="logText"
-          placeholder="Enter fleet log"
+          placeholder="Insert here"
           rows="10"
           max-rows="20"/>
       <b-form-select v-model="market" :options="options" size="sm" class="mt-3 mb-3"></b-form-select>

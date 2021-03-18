@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { numberToEveFormat } from './utils'
+import { numberToEveFormat } from '../utils'
 
 export default {
   name: 'CharacterTable',

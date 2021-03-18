@@ -10,7 +10,7 @@
         <b-navbar-nav>
           <b-navbar-nav class="ml-auto">
             <b-nav-item to="/parser">Fleet log parser</b-nav-item>
-<!--            <b-nav-item to="/compression">Ore compression</b-nav-item>-->
+            <b-nav-item to="/compression">Ore compression</b-nav-item>
           </b-navbar-nav>
 
         </b-navbar-nav>

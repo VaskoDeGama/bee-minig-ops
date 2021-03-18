@@ -24,7 +24,7 @@ import FleetTotal from './fleet-result.vue'
 import FleetDetails from './fleet-details.vue'
 import ParseForm from '../parse-form.vue'
 
-import { updateItemRecord, createItemRecord, roundPrice, parseDate } from './utils.js'
+import { updateItemRecord, createItemRecord, roundPrice, parseDate, normalizeString } from '../utils.js'
 import api from '../../services/api'
 
 export default {
@@ -177,8 +177,8 @@ export default {
           continue
         }
 
-        const itemType = itemTypeRaw.match(/"(\w.*)"/) ? itemTypeRaw.match(/"(\w.*)"/)[1] : itemTypeRaw
-        const itemGroup = itemGroupRaw.match(/"(\w.*)"/) ? itemGroupRaw.match(/"(\w.*)"/)[1] : itemGroupRaw
+        const itemType = normalizeString(itemTypeRaw)
+        const itemGroup = normalizeString(itemGroupRaw)
 
         if (this.itemsFilter.includes(itemGroup)) {
           if (!itemNames.includes(itemType)) {
@@ -230,7 +230,7 @@ export default {
           const reward = Math.round(quantityValue * this.orcaRewardPercent)
 
           const rewardVolume = Math.round(reward * prices.typeVolume)
-          const rewardPrice = roundPrice(reward * prices.buy.percentile)
+          const rewardPrice = roundPrice(reward * prices.buy.max)
 
           if (Reflect.has(this.orcaReward, itemType)) {
             this.orcaReward[itemType] = this.orcaReward[itemType] + reward

@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { createItemRecord, roundPrice, updateItemRecord, numberToEveFormat, dateToLongString } from './utils'
+import { createItemRecord, roundPrice, updateItemRecord, numberToEveFormat, dateToLongString } from '../utils'
 
 export default {
   name: 'FleetResult',
