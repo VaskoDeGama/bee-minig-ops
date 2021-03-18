@@ -44,16 +44,9 @@ export default {
       }
     },
     async parseLog (logText, market) {
-      logText = 'Azure Plagioclase*\t46 738\tPlagioclase*\t\t\t16 358,30 м^3\t3 037 502,62 ISK\n' +
-          'Azure Plagioclase*\t76 280\tPlagioclase*\t\t\t26 698 м^3\t4 957 437,20 ISK\n' +
-          'Plagioclase*\t18 927\tPlagioclase*\t\t\t6 624,45 м^3\t1 193 915,16 ISK\n' +
-          'Plagioclase*\t92 386\tPlagioclase*\t\t\t32 335,10 м^3\t5 827 708,88 ISK\n' +
-          'Rich Plagioclase*\t223 950\tPlagioclase*\t\t\t78 382,50 м^3\t15 380 886,00 ISK\n' +
-          'Rich Plagioclase*\t42 477\tPlagioclase*\t\t\t14 866,95 м^3\t2 917 320,36 ISK\n' +
-          'Concentrated Veldspar*\t127 810\tVeldspar*\t\t\t12 781 м^3\t1 956 771,10 ISK\n' +
-          'Concentrated Veldspar*\t45 173\tVeldspar*\t\t\t4 517,30 м^3\t691 598,63 ISK\n' +
-          'Dense Veldspar*\t269 824\tVeldspar*\t\t\t26 982,40 м^3\t4 414 320,64 ISK\n' +
-          'Veldspar*\t206 607\tVeldspar*\t\t\t20 660,70 м^3\t3 097 038,93 ISK'
+      this.oreParsed = false
+      this.rawOres = {}
+      this.compressOres = {}
 
       const rows = logText.split('\n')
 
