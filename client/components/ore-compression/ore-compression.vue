@@ -1,10 +1,10 @@
 <template>
   <b-row class="min-vw-100 mt-3 mb-3 d-flex flex-md-column flex-lg-row  ">
-    <b-col md="12" lg="3" class="mb-5">
-      <h4>Ore compression</h4>
+    <b-col md="12" lg="3" class="mb-3 d-flex flex-column justify-content-lg-start justify-content-md-center  align-items-md-stretch">
+      <h4 class="ml-3 mr-3">Ore compression</h4>
       <ParseForm :parse-log="parseLog"/>
     </b-col>
-    <b-col class="d-flex flex-md-column flex-lg-row justify-content-around align-items-start">
+    <b-col class="d-flex flex-md-column flex-lg-row justify-content-center align-items-lg-start align-items-md-stretch" >
         <OreTable :ore-parsed="oreParsed" :ores="rawOres"/>
         <OreTable :ore-parsed="oreParsed" :ores="compressOres" compressed="true"/>
     </b-col>

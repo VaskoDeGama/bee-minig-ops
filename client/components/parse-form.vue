@@ -1,5 +1,5 @@
 <template>
-  <b-form @submit.prevent="parseLog(logText, market)">
+  <b-form class="ml-3 mr-3" @submit.prevent="parseLog(logText, market)">
     <b-form-group>
       <b-form-textarea
           id="textarea"

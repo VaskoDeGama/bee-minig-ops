@@ -1,5 +1,5 @@
 <template>
-  <b-card v-if="oreParsed" footer-class="p-2" no-body class="mb-3">
+  <b-card v-if="oreParsed" footer-class="p-2" no-body class="m-3">
     <template #header>
       <b-row class="d-flex justify-content-center align-items-center ">
         <h4 class="mb-0">{{ compressed ? 'Compressed ' : '' }}Ores</h4>
