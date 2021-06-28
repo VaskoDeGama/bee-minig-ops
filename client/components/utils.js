@@ -23,7 +23,7 @@ const normalizeString = (str) => {
  * @param {string} str
  * @returns {number}
  */
-const parseNumber = (str) => {
+const parseNumber = (str = '') => {
   return parseInt(str.replace(/\s/g, ''))
 }
 
@@ -34,7 +34,7 @@ const parseNumber = (str) => {
  * @returns {string}
  */
 const numberToEveFormat = (value = 0, unitText = '') => {
-  const [int, flt] = value.toString().split('.')
+  const [int = '', flt = ''] = value.toString().split('.')
 
   const normFlr = flt && flt.length > 2 ? flt.slice(0, 2) : flt
 

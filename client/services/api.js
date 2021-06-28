@@ -1,24 +1,38 @@
-const fetchPricesFromEvePrasial = async (types, market) => {
+'use strict'
+
+/**
+ *
+ * @param {object[]} items
+ * @param {string} market
+ * @returns {Promise<{success: boolean, message: string }>}
+ */
+const fetchPricesFromEvePrasial = async (items, market) => {
   try {
     const response = await fetch(process.env.ENDPOINT, {
       method: 'POST',
-      mode: 'cors', // no-cors, *cors, same-origin
-      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: 'same-origin', // include, *same-origin, omit
-      redirect: 'follow', // manual, *follow, error
-      referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+      mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
+      redirect: 'follow',
+      referrerPolicy: 'no-referrer',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ market_name: market, items: types })
+      body: JSON.stringify({ market_name: market, items })
     })
 
     if (response.ok) {
       return await response.json()
     } else {
-      const data = await response.json()
+      const text = await response.text()
 
-      return { success: false, message: data.error }
+      try {
+        const data = JSON.parse(text)
+
+        return { success: false, message: data.error }
+      } catch (e) {
+        return { success: false, message: text }
+      }
     }
   } catch (e) {
     return { success: false, message: e.message }

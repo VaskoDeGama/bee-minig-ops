@@ -1,7 +1,7 @@
 <template>
   <b-row class="min-vw-100 mt-3 mb-3 d-flex flex-md-column flex-lg-row  ">
-    <b-col md="12" lg="3" class="mb-5">
-      <h4>Fleet log parser</h4>
+    <b-col md="12" lg="3" class="mb-3 d-flex flex-column justify-content-lg-start justify-content-md-center  align-items-md-stretch">
+      <h4 class="ml-3 mr-3">Fleet log parser</h4>
       <ParseForm :parse-log="parseLog"/>
     </b-col>
     <b-col class="d-flex flex-column">
@@ -83,19 +83,26 @@ export default {
         'Uncommon Moon Ore Processing',
         'Rare Moon Ore Processing',
         'Exceptional Moon Ore Processing'
-
       ],
       prices: {}
     }
   },
   methods: {
+    toast (title, message, variant) {
+      this.$bvToast.toast(message, {
+        title: title,
+        toaster: 'b-toaster-top-right',
+        solid: true,
+        variant
+      })
+    },
     /**
-     * @param {string[]} types
+     * @param {string[]} items
      * @param {string} market
      * @returns {object}
      */
-    async getPricePrasial (types, market) {
-      const formattedTypes = types.map(name => {
+    async getPricePrasial (items, market) {
+      const formattedTypes = items.map(name => {
         return { name }
       })
       const { success, data, message } = await api.fetchPricesFromEvePrasial(formattedTypes, market)
@@ -112,6 +119,7 @@ export default {
         return prices
       } else {
         console.error(message)
+        this.toast('Get price failed!', message, 'danger')
         return {}
       }
     },
@@ -174,8 +182,7 @@ export default {
      */
     async parseLog (log, market) {
       if (!log || log.length < 20) {
-        // TODO show alert
-        console.log('log', log)
+        this.toast('Invalid source text', 'The text you are trying to parse does not match. Try to copy the text from the log file!', 'warning')
         return
       }
 
@@ -188,56 +195,62 @@ export default {
 
       rawRows.shift() // remove headers row
 
-      const fleet = { }
+      if (rawRows.length) {
+        const fleet = { }
 
-      const [rawDate] = rawRows[0].split('\t')
+        const [rawDate] = rawRows[0].split('\t')
 
-      this.fleetDate = parseDate(rawDate)
+        this.fleetDate = parseDate(rawDate)
 
-      const rows = []
-      const itemNames = []
+        const rows = []
+        const itemNames = []
 
-      for (const row of rawRows) {
-        const [, character, itemTypeRaw, quantityValue, itemGroupRaw] = row.split('\t')
+        for (const row of rawRows) {
+          const [, character, itemTypeRaw, quantityValue, itemGroupRaw] = row.split('\t')
 
-        if (!character || !itemTypeRaw || !quantityValue || !itemGroupRaw) {
-          continue
-        }
-
-        const itemType = normalizeString(itemTypeRaw)
-        const itemGroup = normalizeString(itemGroupRaw)
-
-        if (this.itemsFilter.includes(itemGroup)) {
-          if (!itemNames.includes(itemType)) {
-            itemNames.push(itemType)
+          if (!character || !itemTypeRaw || !quantityValue || !itemGroupRaw) {
+            continue
           }
 
-          rows.push([character, itemType, quantityValue, itemGroup])
+          const itemType = normalizeString(itemTypeRaw)
+          const itemGroup = normalizeString(itemGroupRaw)
+
+          if (this.itemsFilter.includes(itemGroup)) {
+            if (!itemNames.includes(itemType)) {
+              itemNames.push(itemType)
+            }
+
+            rows.push([character, itemType, quantityValue, itemGroup])
+          }
         }
+
+        this.prices = await this.getPricePrasial(itemNames, market)
+
+        for (const row of rows) {
+          const [character, itemType, quantityValue, itemGroup] = row
+
+          const characterRecord = Reflect.has(fleet, character)
+            ? fleet[character]
+            : { items: {}, isOrca: false, name: character, alts: [], isMain: true, hasAlts: false, totalVolume: 0, totalPrice: 0 }
+
+          const prices = this.prices[itemType]
+
+          if (prices) {
+            const record = createItemRecord(itemType, itemGroup, quantityValue, prices)
+
+            characterRecord.items[itemType] = record
+            characterRecord.totalPrice += record.totalPrice
+            characterRecord.totalVolume += record.totalVolume
+
+            fleet[character] = characterRecord
+          }
+        }
+
+        this.fleet = fleet
+        this.fleetParsed = true
+      } else {
+        this.toast('Invalid source text', 'The text you are trying to parse does not match. Try to copy the text from the log file!', 'warning')
       }
-
-      this.prices = await this.getPricePrasial(itemNames, market)
-
-      for (const row of rows) {
-        const [character, itemType, quantityValue, itemGroup] = row
-
-        const characterRecord = Reflect.has(fleet, character)
-          ? fleet[character]
-          : { items: {}, isOrca: false, name: character, alts: [], isMain: true, hasAlts: false, totalVolume: 0, totalPrice: 0 }
-
-        const prices = this.prices[itemType]
-
-        const record = createItemRecord(itemType, itemGroup, quantityValue, prices)
-
-        characterRecord.items[itemType] = record
-        characterRecord.totalPrice += record.totalPrice
-        characterRecord.totalVolume += record.totalVolume
-
-        fleet[character] = characterRecord
-      }
-
-      this.fleet = fleet
-      this.fleetParsed = true
     },
 
     /**

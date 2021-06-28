@@ -33,29 +33,46 @@ export default {
   },
   methods: {
 
+    toast (title, message, variant) {
+      this.$bvToast.toast(message, {
+        title: title,
+        toaster: 'b-toaster-top-right',
+        solid: true,
+        variant
+      })
+    },
+
     async getPrices (type, market) {
       const { success, data, message } = await api.fetchPricesFromEvePrasial(type, market)
 
       if (success) {
         return data
       } else {
-        // TODO show error message
-        console.error(message)
+        this.toast('Get price failed!', message, 'danger')
         return {}
       }
     },
     async parseLog (logText, market) {
+      if (!logText || logText.length < 20 || !/\n/.test(logText)) {
+        this.toast('Invalid source text', 'The text you are trying to parse does not match. Try to copy the text from the log file!', 'warning')
+        return
+      }
+
       this.oreParsed = false
       this.rawOres = {}
       this.compressOres = {}
 
       const rows = logText.split('\n')
 
+      console.log(rows)
+
       const types = []
       const compressTypes = []
 
       for (const row of rows) {
         const [rawName, rawQuantity] = row.split('\t')
+
+        console.log(rawName, rawQuantity)
 
         const name = normalizeString(rawName)
         const quantity = parseNumber(rawQuantity)
