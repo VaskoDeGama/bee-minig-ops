@@ -2,7 +2,7 @@
   <b-card v-if="fleetParsed" footer-class="p-2" no-body class="mb-3">
     <template #header>
       <b-row class="d-flex justify-content-center align-items-center ">
-        <h4 class="mb-0">Mining ops result {{ dateFormatter(fleetTotal.fleetDate) }}</h4>
+        <h4 class="mb-0">Mining ops result</h4>
 
     </b-row></template>
     <div class="d-flex flex-column  justify-content-center align-items-center">
